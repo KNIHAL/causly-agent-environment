@@ -67,6 +67,7 @@ export const metadata: Metadata = {
     icon: "/favicon.png",
   },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
