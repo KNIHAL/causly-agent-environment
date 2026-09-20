@@ -1,0 +1,17 @@
+name: Docs improvement
+description: Something in the docs is outdated, unclear, or missing
+labels: [docs]
+body:
+  - type: input
+    id: page
+    attributes:
+      label: Docs page
+      description: Which doc page (e.g. /docs/server/getting-started)?
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's wrong or missing?
+    validations:
+      required: true

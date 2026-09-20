@@ -1,0 +1,14 @@
+name: Feature idea
+description: Suggest an improvement to the landing page or docs site
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What's the idea?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would this help?
