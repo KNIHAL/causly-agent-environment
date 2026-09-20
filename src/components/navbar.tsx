@@ -5,7 +5,7 @@ import { useState } from "react";
 const navItems = [
   { label: "Product", href: "#product" },
   { label: "Local vs Hosted", href: "#local-vs-hosted" },
-  { label: "Docs", href: "https://github.com/KNIHAL/causly-server/tree/master/website/docs" },
+  { label: "Docs", href: "/docs" },
 ];
 
 export default function Navbar() {

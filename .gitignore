@@ -19,6 +19,12 @@
 
 # production
 /build
+/public/docs
+
+# docusaurus (website/)
+website/node_modules
+website/build
+website/.docusaurus
 
 # misc
 .DS_Store

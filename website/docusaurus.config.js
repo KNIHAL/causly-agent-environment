@@ -3,7 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Causly Server',
+  title: 'Causly Docs',
   tagline: 'One conversation. Your whole stack.',
   favicon: 'img/favicon.png',
 
@@ -11,11 +11,11 @@ const config = {
     v4: true,
   },
 
-  url: 'https://knihal.github.io',
-  baseUrl: '/causly-server/',
+  url: 'https://agenv.causly.in',
+  baseUrl: '/docs/',
 
   organizationName: 'KNIHAL',
-  projectName: 'causly-server',
+  projectName: 'agenv',
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
@@ -32,7 +32,8 @@ const config = {
       ({
         docs: {
           sidebarPath: './sidebars.js',
-          routeBasePath: 'docs',
+          path: 'docs',
+          routeBasePath: '/',
         },
         blog: false,
         theme: {
@@ -53,7 +54,7 @@ const config = {
       navbar: {
         title: '',
         logo: {
-          alt: 'Causly Server',
+          alt: 'Causly',
           src: 'img/causly-logo.png',
         },
         items: [
@@ -76,8 +77,8 @@ const config = {
           {
             title: 'Docs',
             items: [
-              {label: 'Architecture', to: '/docs/architecture'},
-              {label: 'All tool categories', to: '/docs/tools/overview'},
+              {label: 'Architecture', to: '/docs/server/architecture'},
+              {label: 'All tool categories', to: '/docs/server/tools/overview'},
             ],
           },
           {

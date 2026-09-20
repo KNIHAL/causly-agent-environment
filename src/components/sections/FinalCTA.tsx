@@ -10,7 +10,7 @@ const actions = [
         description:
             "Understand how Causly works and start building with the agent environment.",
         cta: "Read Docs",
-        href: "https://github.com/KNIHAL/causly-server/tree/master/website/docs",
+        href: "/docs",
     },
     {
         type: "github",

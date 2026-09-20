@@ -14,7 +14,7 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const buildDir = path.join(__dirname, "..", "build");
-const docsDir = path.join(__dirname, "..", "..", "docs");
+const docsDir = path.join(__dirname, "..", "..", "public", "docs");
 
 if (!fs.existsSync(buildDir)) {
   console.error(`Build directory not found: ${buildDir}. Run "npm run build" first.`);

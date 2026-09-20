@@ -8,7 +8,7 @@ const productLinks = [
 ];
 
 const resourceLinks = [
-    { label: "Documentation", href: "https://github.com/KNIHAL/causly-server/tree/master/website/docs" },
+    { label: "Documentation", href: "/docs" },
     { label: "GitHub", href: "https://github.com/KNIHAL/causly-server" },
     { label: "Hosted", href: "https://tally.so/r/NpZkpW" },
 ];
