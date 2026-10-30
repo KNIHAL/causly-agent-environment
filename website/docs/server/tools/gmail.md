@@ -9,25 +9,27 @@ sidebar_position: 12
 
 ## Setup
 
-Gmail uses OAuth2 (client ID + secret + refresh token), not a simple API key, because Gmail
-access is tied to a specific Google account rather than a project-level API key:
+Gmail uses OAuth2 instead of a simple API key, because access is tied to a specific Google
+account. Gmail, [Calendar](./calendar.md) and Search Console share one OAuth client that you
+create once:
 
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/), create a project (or use
-   an existing one)
-2. Enable the **Gmail API** for that project
-3. Under **Credentials**, create an **OAuth 2.0 Client ID** (application type: Desktop app) —
-   this gives you a client ID and client secret
-4. Go to [Google's OAuth Playground](https://developers.google.com/oauthplayground), click the
-   gear icon (top-right) and check **Use your own OAuth credentials**, entering the client ID/
-   secret from step 3
-5. In the scopes list, authorize whichever of these you need:
-   `https://www.googleapis.com/auth/gmail.readonly`,
-   `https://www.googleapis.com/auth/gmail.send`,
-   `https://www.googleapis.com/auth/gmail.modify`
-6. Click **Authorize APIs**, sign in, then **Exchange authorization code for tokens** — this
-   gives you a refresh token
-7. Add all three values to `.env`: `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET`,
-   `GMAIL_REFRESH_TOKEN`
+1. In [Google Cloud Console](https://console.cloud.google.com/), create a project or pick an
+   existing one.
+2. Enable the **Gmail API**.
+3. Under **Google Auth Platform**, fill in **Branding**, and under **Audience** choose
+   **External** and add your own Google account as a test user.
+4. Under **Clients**, create a client of type **Desktop app**. A "Web application" client fails
+   with `redirect_uri_mismatch`.
+5. Save the client id and secret: `causly-server setup gmail`.
+6. Sign in once in your browser:
+
+```bash
+causly-server login google
+```
+
+This saves `GMAIL_REFRESH_TOKEN` for you. While your Google app is in Testing status, Google
+expires the token every 7 days. Run `causly-server login google` again to renew it, or publish
+the app in **Audience** to stop the expiry. See [Environment variables](../configuration.md#google).
 
 ## Tools
 

@@ -4,7 +4,7 @@ sidebar_position: 10
 
 # Supabase
 
-7 tools for the Supabase Management API — organizations, projects, and raw SQL execution.
+6 tools for the Supabase Management API — organizations, projects, and raw SQL execution.
 Implemented in `tools/supabaseOps.js`.
 
 ## Setup
@@ -12,7 +12,7 @@ Implemented in `tools/supabaseOps.js`.
 1. Log into [supabase.com/dashboard](https://supabase.com/dashboard)
 2. Go to **Account** (top-right avatar) → **Access Tokens**
 3. Click **Generate new token**, name it, copy it
-4. Add it to `.env` as `SUPABASE_ACCESS_TOKEN`
+4. Save it with `causly-server setup supabase` (variable: `SUPABASE_ACCESS_TOKEN`)
 
 This is an account-level token — it can see and manage every organization and project your
 Supabase account has access to, not just one project. Treat it like any other credential with
@@ -25,9 +25,9 @@ broad scope.
 | `supabase_list_organizations` | READ | List organizations the authenticated account belongs to |
 | `supabase_list_projects` | READ | List Supabase projects for the authenticated account |
 | `supabase_get_project` | READ | Get details of a single project by its ref/ID |
-| `supabase_create_project` | HIGH | Create a new Supabase project |
+| `supabase_create_project` | MEDIUM | Create a new Supabase project |
 | `supabase_delete_project` | DESTRUCTIVE | Delete a Supabase project |
-| `supabase_run_sql` | MEDIUM | Run raw SQL against a project's database — creating tables, altering schema, or querying data directly |
+| `supabase_run_sql` | HIGH | Run raw SQL against a project's database — creating tables, altering schema, or querying data directly |
 
 ## Example
 

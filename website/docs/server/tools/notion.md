@@ -10,7 +10,8 @@ implemented in `tools/notionOps.js`.
 ## Setup
 
 1. Create an integration at [notion.so/my-integrations](https://www.notion.so/my-integrations)
-2. Copy its **Internal Integration Secret** into `.env` as `NOTION_API_KEY`
+2. Copy its **Internal Integration Secret** and save it with `causly-server setup notion`
+   (variable: `NOTION_API_KEY`)
 3. Open the page or database you want Claude to access in Notion, click **`...`** →
    **Connections**, and add your integration
 

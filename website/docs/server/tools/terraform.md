@@ -18,13 +18,13 @@ Install the [Terraform CLI](https://developer.hashicorp.com/terraform/install) a
 |---|---|---|
 | `terraform_init` | LOW | Initialize a working directory, download providers |
 | `terraform_validate` | READ | Validate config syntax and internal consistency |
-| `terraform_fmt` | LOW | Format `.tf` files to canonical style |
-| `terraform_plan` | READ | Show what would change |
-| `terraform_apply` | DESTRUCTIVE | Apply changes to reach the desired state |
+| `terraform_fmt` | MEDIUM | Format `.tf` files to canonical style |
+| `terraform_plan` | LOW | Show what would change |
+| `terraform_apply` | HIGH | Apply changes to reach the desired state |
 | `terraform_destroy` | DESTRUCTIVE | Destroy all resources managed by the config |
 | `terraform_show` | READ | Show current state or a saved plan |
 | `terraform_output` | READ | Read output values from state |
-| `terraform_workspace` | MEDIUM | Manage workspaces (dev/staging/prod) — list/new/select/delete |
+| `terraform_workspace` | HIGH | Manage workspaces (dev/staging/prod) — list/new/select/delete |
 
 ## State & advanced (10 tools)
 
@@ -37,13 +37,13 @@ Install the [Terraform CLI](https://developer.hashicorp.com/terraform/install) a
 | `terraform_state_pull` | READ | Download raw remote state as JSON |
 | `terraform_import` | HIGH | Bring an existing real-world resource under management |
 | `terraform_taint` | HIGH | Force a resource to be destroyed and recreated next apply |
-| `terraform_untaint` | LOW | Remove a resource's tainted mark |
+| `terraform_untaint` | MEDIUM | Remove a resource's tainted mark |
 | `terraform_graph` | READ | Generate a dependency graph (DOT format) |
 | `terraform_providers` | READ | List required providers and resolved versions |
 
 ## CI/CD hook (1 tool)
 
-**`terraform_plan_comment`** (HIGH) — runs `terraform plan`, formats a Markdown summary, and
+**`terraform_plan_comment`** (MEDIUM) — runs `terraform plan`, formats a Markdown summary, and
 posts it as a comment on a GitHub pull request (via the same GitHub tooling used elsewhere in
 this server) — so a reviewer sees the infrastructure diff before approving, without leaving the
 PR.

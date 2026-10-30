@@ -11,7 +11,7 @@ sidebar_position: 9
 
 1. Go to [vercel.com/account/tokens](https://vercel.com/account/tokens)
 2. Create a new token
-3. Add it to `.env` as `VERCEL_TOKEN`
+3. Save it with `causly-server setup vercel` (variable: `VERCEL_TOKEN`)
 
 ## Tools
 
@@ -26,7 +26,7 @@ sidebar_position: 9
 | `vercel_create_deployment` | HIGH | Trigger a new deployment from a git-connected project |
 | `vercel_get_deployment_logs` | READ | Get build/runtime logs for a deployment |
 | `vercel_get_deployment_events` | READ | Get a deployment's build/progress state |
-| `vercel_cancel_deployment` | HIGH | Cancel a currently building or queued deployment |
+| `vercel_cancel_deployment` | MEDIUM | Cancel a currently building or queued deployment |
 | `http_check` | READ | Hit a URL and report status code, health, and response time |
 
 `vercel_create_deployment` resolves the numeric GitHub repository ID automatically from an

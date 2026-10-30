@@ -1,44 +1,72 @@
 ---
-sidebar_position: 9
+sidebar_position: 2
 ---
 
 # Limitations
 
-Current, structural limitations — things that are out of scope or not yet built, as opposed to
-per-tool bugs (see [Troubleshooting](./troubleshooting) for those).
+What Causly Server does not do today. These are structural limits, not bugs. For problems you can
+fix, see [Troubleshooting](./troubleshooting.md).
 
-## Client support
+## Scope
 
-Claude Desktop (or another MCP-compatible client) is the only supported way to use this server
-today. There is no separate hosted agent or chat interface in this repository.
+- **Local and single-user.** Causly Server is a process your MCP client starts over stdio. There
+  is no remote or multi-user mode, no shared team workspace, and no hosted agent or chat
+  interface.
+- **Any MCP client, tested with a few.** Tested with Claude Desktop, Cursor, Windsurf, a plain
+  JavaScript MCP client and LangChain (JS). Claude Code is supported through the command that
+  `init` prints. Other clients should work but are not tested.
+- **Request and response only.** Tools run when your agent calls them. Nothing watches your
+  infrastructure in the background. The one exception is the reminder job, which runs only while
+  a Causly Server process is running.
+- **Your agent decides what to call.** Causly provides tools and guardrails. The quality of what
+  gets done depends on the agent and model you connect.
 
-## No packaged installer yet
+## Platforms
 
-Setup is currently `git clone` + `npm install` + `.env` configuration + `npm run setup` (see
-[Getting Started](./getting-started)). A single-command installer (`npx -y causly-server`) is
-planned but not yet built.
+- **Node.js 22.13 or newer** is required.
+- **Windows** is tested by hand. **macOS and Linux** are covered by the automated test suite on
+  every change (CI runs on all three), but have had less hands-on use. Reports are welcome.
+- Docker tools fall back to `wsl docker` on Windows when Docker only exists inside WSL.
 
-## No continuous/background monitoring
+## Google
 
-The open-source core is request/response only — it acts when Claude calls a tool. Anything that
-runs unattended and watches infrastructure over time (continuous cloud monitoring, alerting) is
-not part of this repository.
+- While your Google app is in **Testing** status, Google expires the refresh token after 7 days.
+  Run `causly-server login google` to renew it, or publish the app to production.
+- Gmail, Calendar and Search Console need a Google OAuth client that you create yourself.
 
-## Direct Azure/GCP/AWS tools are out of scope for now
+## Safety
 
-Terraform tools (already shipped) can provision and destroy cloud resources indirectly via
-`plan`/`apply`/`destroy`. Direct-SDK cloud tools (account/resource listing, compute
-management, runtime introspection independent of Terraform) are deliberately deferred — not
-planned on a fixed timeline.
+- The **workspace limit is a guardrail, not a sandbox.** It checks path arguments. It does not
+  inspect the text of shell commands or Docker mounts.
+- The **approval gate** is a flag the agent must pass, not a separate approval screen.
+- Commands run with `run_command` inherit the server's environment, including your keys.
+- BoundaryAttest is a proof of concept. It covers three workflow tools and uses a key file you
+  manage. It has no production key storage, rotation, revocation, KMS or HSM integration, or
+  trust registry. See [BoundaryAttest](./tools/boundaryattest.md).
 
-## BoundaryAttest is a proof of concept
+See [Security](./security.md#what-is-not-protected) for the full list.
 
-The optional signed-receipt evidence layer covers only three workflow tools and uses an
-operator-managed key file. It does not provide production key storage, rotation, revocation,
-KMS/HSM integration, or a trust registry. See [Security](./security#optional-evidence-layer-boundaryattest-receipts-proof-of-concept).
+## Tools
 
-## Per-tool limitations
+- **No direct cloud tools.** Azure, GCP and AWS SDK tools are out of scope. You can still provision
+  cloud resources with the [Terraform tools](./tools/terraform.md).
+- **Transcription needs the internet.** `meeting_transcribe` uses Groq Whisper. A local engine is
+  not available yet.
+- **Keyword ideas have no search volume.** They come from search autocomplete. Use Search Console
+  for your own site's real numbers.
+- **No outreach tools for LinkedIn, X or WhatsApp.** Email goes through [Gmail](./tools/gmail.md).
+- **Pipeline does not send messages.** It records what happened. Sending is a separate step.
+- **Recurring calendar events.** Updating one only changes the event id you pass, not the whole
+  series.
+- **No sync between machines.** Your pipeline, meetings and reminders are in one local database.
+  Use [`backup`](./cli.md#backup-and-restore) to move or keep a copy.
 
-Several individual tools have narrower, service-specific limitations (git-linked Vercel projects,
-Slack bot vs. user tokens, Supabase SQL permissions, and others) — these are actionable and
-covered in [Troubleshooting](./troubleshooting) and on each tool's own page.
+## Service-specific limits
+
+- Vercel deployment tools need a project that is already git-linked.
+- `supabase_run_sql` goes through the Supabase Management API. Some tokens get a `403` for SQL.
+- `slack_search_messages` needs a Slack user token with `search:read`.
+- `docker_push` needs registry authentication configured on the host.
+- Sentry `resolve_issue`, `ignore_issue` and `add_comment` need the `event:write` scope.
+
+Fixes are in [Troubleshooting](./troubleshooting.md#service-specific-issues).

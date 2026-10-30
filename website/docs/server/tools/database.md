@@ -23,7 +23,7 @@ reused per unique connection string within the server process.
 
 | Tool | Risk | What it does |
 |---|---|---|
-| `postgres_query` | MEDIUM | Run a read or write SQL query |
+| `postgres_query` | HIGH | Run a read or write SQL query |
 | `postgres_list_tables` | READ | List tables in a schema (defaults to `public`) |
 | `postgres_describe_table` | READ | Column names, types, nullability |
 | `postgres_test_connection` | READ | Verify a connection string, return server version |
@@ -32,7 +32,7 @@ reused per unique connection string within the server process.
 
 | Tool | Risk | What it does |
 |---|---|---|
-| `mysql_query` | MEDIUM | Run a read or write SQL query |
+| `mysql_query` | HIGH | Run a read or write SQL query |
 | `mysql_list_tables` | READ | List all tables |
 | `mysql_describe_table` | READ | Column names, types, nullability |
 | `mysql_test_connection` | READ | Verify a connection string, return server version |

@@ -1,100 +1,154 @@
 ---
-sidebar_position: 3
+sidebar_position: 1
+sidebar_label: How it works
 ---
 
-# Architecture
+# How it works
 
-## Overview
+Causly Server is a single Node.js process. Your MCP client (Claude Desktop, Cursor, Windsurf or
+your own agent) starts it and talks to it over standard input and output. There is no network
+listener and no Causly cloud.
 
-Causly Server is an [MCP](https://modelcontextprotocol.io) (Model Context Protocol) server — a
-process that runs on your own machine and exposes a set of **tools** that an MCP client (Claude
-Desktop, or any other MCP-compatible client) can call directly inside a conversation.
-
-At a system level, it's a single Node.js process (`index.js`) that:
-
-1. Starts an MCP server over stdio
-2. Registers every tool, resource, and prompt
-3. Routes each incoming tool call through a **security layer** before it touches your filesystem,
-   a database, a cloud API, or anything else
-4. Executes the actual operation
-5. Writes a structured, redacted line to `logs/activity.log`
-6. Returns the result to the client
-
-```mermaid
-flowchart LR
-    A[Claude] -->|tool call| B[index.js]
-    B --> C[Security layer\nclassify → redact → gate]
-    C --> D[tools/*Ops.js\nactual operation]
-    D --> E[Structured audit log]
-    D --> F[Result back to Claude]
+```text
+Your agent / editor
+        |  MCP over stdio
+        v
++--------------------------------------------------+
+| Causly Server                                    |
+|                                                  |
+|  Tool router      search_tools, load_toolset,    |
+|                   use_tool                       |
+|  Safety layer     workspace limit, approval      |
+|                   gate, redaction, activity log  |
+|  Tool packs       files, git, github, pipeline,  |
+|                   calendar, ... (loaded on use)  |
+|  Local store      SQLite, secrets, ~/.causly/.env|
++--------------------------------------------------+
+        |  HTTPS, with your own keys
+        v
+GitHub, Vercel, Slack, Google, Telegram, ...
 ```
 
-## Code organization
+## What happens when the server starts
 
-Every external service gets its own file under `tools/`, following the same shape:
+1. Settings are loaded from your environment and `~/.causly/.env` (see
+   [Environment variables](./configuration.md)).
+2. The router tools, MCP resources and MCP prompts are registered.
+3. The core packs load, plus any packs named in `CAUSLY_TOOLSETS`.
+4. The server connects over stdio and waits for requests.
 
-```js
-// tools/exampleOps.js
-export async function exampleAction({ param1, param2 }) {
-  // ... call the service's API or CLI
-  return { result: "..." };
+Startup messages go to stderr. Standard output carries only protocol messages, which is why Causly
+uses its own small settings loader instead of a library that prints a banner.
+
+## What happens on every tool call
+
+Every tool, in every pack, is wrapped by the same pipeline:
+
+1. **Reload settings** if `~/.causly/.env` changed, so new keys work without a restart.
+2. **Workspace check.** If a workspace limit is on, every path in the arguments must be inside it.
+3. **Approval check.** `HIGH` and `DESTRUCTIVE` tools must be called with `confirm: true`.
+4. **Run the tool.**
+5. **Log it.** One redacted line is appended to the activity log, with success, error or blocked
+   status and the duration.
+6. **Return the result.** Errors that point at a missing key include the exact command to fix it,
+   for example `Fix: run "causly-server setup github" in a terminal.`
+
+A call that fails step 2 or 3 never reaches the tool. It returns a `Blocked:` message that says
+why. See [Security](./security.md) for the details of each check.
+
+## Tool packs and lazy loading
+
+Tools are grouped into packs, one per integration or feature, for example `github`, `docker`,
+`pipeline` or `calendar`. A pack's code is imported only when the pack is loaded, so unused
+integrations cost nothing at startup and add nothing to your agent's context.
+
+| Kind | Packs | When they load |
+|---|---|---|
+| **Core** | `files`, `directory`, `command`, `project` | Always, at startup |
+| **Startup** | Whatever `CAUSLY_TOOLSETS` lists. `init` sets `research`, `leads`, `seo`, `pipeline`, `reminders`, `meetings` | At startup |
+| **On demand** | Every other pack | When your agent loads them |
+
+`CAUSLY_TOOLSETS` accepts pack names separated by commas, or `all` to load everything. Manage it
+with [`causly-server toolsets`](./cli.md#toolsets). An unknown pack name is ignored and reported
+on stderr.
+
+## Finding and calling tools
+
+Three always-available router tools let an agent work with packs that are not loaded yet.
+
+| Tool | What it does |
+|---|---|
+| `search_tools` | Find tools by keyword across **all** packs, loaded or not. With no query it lists every pack. It searches a prebuilt manifest, so nothing has to be loaded to search |
+| `load_toolset` | Load one or more packs so their tools join the tool list |
+| `use_tool` | Call any tool by name. If its pack is not loaded, it loads automatically |
+
+### Why `use_tool` exists
+
+Some clients, Claude Desktop among them, read the tool list once and do not refresh it during a
+chat. A pack loaded mid-conversation would be invisible. `use_tool` solves this: the agent calls
+`use_tool` with a tool name and arguments, and the call works immediately with no restart.
+
+```json
+{
+  "tool": "github_list_issues",
+  "arguments": { "owner": "acme", "repo": "web" }
 }
 ```
 
-`index.js` imports each module and registers its functions as MCP tools with
-`server.registerTool(name, { description, inputSchema }, wrap(name, fn))`. The `wrap()` helper is
-where the security layer actually attaches — every registered tool passes through it, so no tool
-can accidentally skip classification or logging.
+Pass `"describe": true` to see a tool's parameters without running it. Arguments are validated
+against the tool's schema, and a wrong call returns the parameter list instead of failing
+silently.
 
-This keeps each service's logic self-contained and independently testable, and means adding a new
-service never requires touching another service's code.
+`use_tool` is not a way around the safety layer. The tool it calls goes through the same
+workspace check, approval gate and logging as a direct call.
 
-## MCP primitives this server uses
+## MCP resources
 
-MCP defines three kinds of things a server can expose. Causly Server uses all three:
+The server exposes read-only project context that a client can attach to a conversation:
 
-### Tools
+| URI | Content |
+|---|---|
+| `causly://project/{path}/health` | Git cleanliness, dependency install status, env file presence |
+| `causly://project/{path}/info` | Language, framework, package manager, resolved commands, branch and remotes |
+| `causly://project/{path}/git` | Changed files, ahead and behind counts, clean state |
 
-The bulk of the surface — 181 callable functions, one per action (`git_commit`,
-`docker_build`, `notion_create_page`, and so on). Each has a name, a description, and a
-Zod-validated input schema. This is what most of this documentation covers.
+`{path}` is the project folder, URL-encoded as a single segment, for example
+`causly://project/D%3A%5Cmy-app/health`.
 
-### Resources
+## MCP prompts
 
-Read-only, URI-addressable context that a client can fetch directly without an explicit tool
-call — useful for grounding a conversation without spending a full tool-call round trip:
+Prompts are reusable instructions that guide an agent through a multi-step job using Causly's
+tools. Your client shows them as commands or templates.
 
-- `causly://project/{path}/health` — git cleanliness, dependency status, quick health snapshot
-- `causly://project/{path}/info` — detected language, framework, package manager
-- `causly://project/{path}/git` — current branch, ahead/behind, uncommitted changes
+| Prompt | Purpose |
+|---|---|
+| `ship-feature` | Take a code change from request to an open pull request |
+| `fix-ci` | Diagnose and fix a failing GitHub Actions run |
+| `deploy-project` | Deploy and verify a project |
+| `review-changes` | Review a pull request's diff, discussion and CI status |
+| `cofounder` | Work as your technical co-founder |
+| `follow-up-review` | Go through due reminders, suggest next actions, and close or snooze them |
+| `process-meeting` | Turn a recording or notes into a saved meeting with action items |
+| `meeting-prep` | Prepare for an upcoming meeting |
+| `pipeline-review` | Review your sales pipeline |
+| `prospecting` | Find prospects |
 
-### Prompts
+## Workflow tools
 
-Pre-written, parameterized conversation starters that guide Claude through a known-good sequence
-for a common task, rather than relying on Claude to reconstruct the right steps each time:
+The `workflow` pack chains several primitives into one verified outcome, for example
+`ship_change` runs checks, commits, pushes and opens a pull request, and stops with the exact
+failure if a step fails. See [Workflow tools](./tools/workflow-tools.md).
 
-- **`ship-feature`** — walks through `ship_change`: verify → branch → commit → push → PR
-- **`fix-ci`** — walks through `fix_ci` + `verify_ci_fix`: diagnose a failing run, fix it, confirm green
-- **`deploy-project`** — walks through `deploy_project`: health check → tests/build → deploy → verify
-- **`review-changes`** — a guided review checklist before shipping
+## Local data
 
-## The security layer
+Everything Causly stores lives in `~/.causly` (see [Environment variables](./configuration.md)):
 
-Every tool call is genuinely capable of changing your filesystem, your infrastructure, or your
-production systems — so nothing runs unexamined. Before (and around) every call,
-`tools/security.js` classifies its risk level, gates `HIGH`/`DESTRUCTIVE` calls behind explicit
-confirmation, redacts secrets before anything is logged, scans commands and paths for risk, and
-appends a structured entry to `logs/activity.log`.
+| Item | Used by |
+|---|---|
+| `.env` | Your keys and settings |
+| `causly.db` | SQLite database for the pipeline, meetings and reminders. Each pack owns its tables and changes them through append-only migrations, so upgrades never rewrite existing data |
+| Secrets store | The [secrets tools](./tools/secrets.md), encrypted |
+| `logs/activity.log` | The audit log of every tool call |
 
-The full permission table, the approval-gate behavior, redaction, command/path risk scanning, the
-audit-log format, and the optional BoundaryAttest evidence layer are documented on the dedicated
-[Security](./security) page.
-
-## Where to go next
-
-- [Tool categories overview](./tools/overview) — every service this server talks to
-- [Security](./security) — the detailed security and audit model
-- [CONTRIBUTING.md](https://github.com/KNIHAL/causly-server/blob/main/CONTRIBUTING.md) — how to
-  add a new tool module
-- [BUILD_LOG.md](https://github.com/KNIHAL/causly-server/blob/main/BUILD_LOG.md) — the full
-  history of what was built, in what order, and the bugs found along the way
+Back up the database with [`causly-server backup`](./cli.md#backup-and-restore). Reminders are
+sent to Telegram when it is configured, and are safe to run from several processes at once.

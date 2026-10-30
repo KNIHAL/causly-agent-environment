@@ -1,103 +1,149 @@
 ---
-sidebar_position: 7
+sidebar_position: 1
 ---
 
 # Development
 
-## Repository structure
+Causly Server is open source under the MIT license. This page explains how to run it from a
+checkout, how the code is organized, and how to add a tool pack.
 
-```
-causly-server/
-├── index.js                # Server entry point, tool/resource/prompt registration
-├── setup.js                 # Configures your Claude Desktop config automatically
-├── package.json
-├── .env                     # Your local tokens (never committed)
-├── .env.example
-├── BUILD_LOG.md              # What was built, in what order, and why
-├── ROADMAP.md                 # What's planned next
-├── CONTRIBUTING.md
-├── CODE_OF_CONDUCT.md
-├── CHANGELOG.md
-├── docs/                     # Detailed technical docs (GitHub Pages build output)
-├── website/                   # Docusaurus source for the docs site
-├── tests/                     # Automated tests (vitest)
-├── .github/
-│   ├── workflows/ci.yml
-│   ├── ISSUE_TEMPLATE/
-│   └── PULL_REQUEST_TEMPLATE.md
-├── tools/
-│   ├── fileOps.js           # File read/write/edit/move/copy
-│   ├── directoryOps.js      # Directory listing, tree, search
-│   ├── gitOps.js            # Git operations via simple-git
-│   ├── commandOps.js        # Shell command execution
-│   ├── githubOps.js         # GitHub REST API — repos, issues, PRs, Actions
-│   ├── vercelOps.js         # Vercel REST API — projects, deployments
-│   ├── supabaseOps.js       # Supabase Management API
-│   ├── slackOps.js          # Slack Web API — channels, messages, threads
-│   ├── gmailOps.js          # Gmail API (OAuth2) — search, read, send, reply, forward
-│   ├── notionOps.js         # Notion API — pages, databases, blocks, comments
-│   ├── terraformOps.js      # Terraform CLI wrapper — full lifecycle + state + CI hook
-│   ├── dockerOps.js         # Docker CLI wrapper — cross-platform (direct or via WSL)
-│   ├── dbOps.js             # Generic Postgres/MySQL query tools
-│   ├── secretsOps.js        # Local AES-256-GCM encrypted secrets manager
-│   ├── sentryOps.js         # Sentry API — issues, projects, stats
-│   ├── projectOps.js        # Stack detection, test/lint/build runners
-│   ├── workflowOps.js       # ship_change, fix_ci, verify_ci_fix, deploy_project
-│   ├── boundaryAttest.js    # Optional signed workflow-receipt POC
-│   ├── security.js          # Redaction, permission levels, risk classification
-│   ├── envLoader.js         # Dependency-free .env parser
-│   └── logger.js            # Structured JSONL activity logging
-└── logs/
-    └── activity.log          # Auto-generated
-```
+Please read the [Code of Conduct](https://github.com/KNIHAL/causly-server/blob/master/CODE_OF_CONDUCT.md)
+and [CONTRIBUTING.md](https://github.com/KNIHAL/causly-server/blob/master/CONTRIBUTING.md) before
+you open a pull request.
 
-## Local development workflow
+## Set up a checkout
 
-1. Fork and clone the repo
-2. `npm install`
-3. Copy `.env.example` to `.env` and add tokens for whichever services you're working on
-4. `npm run setup` to point your local Claude Desktop config at this repo
-5. Make your changes
-6. Restart Claude Desktop and exercise the new/changed tool through a real conversation
-7. Check `logs/activity.log` to confirm the call succeeded and logged as expected
-
-## Testing
-
-The repository includes an automated test suite (`vitest`) under `tests/`, with one test file
-per tool module (`gitOps`, `githubOps`, `dockerOps`, `dbOps`, `secretsOps`, `sentryOps`,
-`slackOps`, `supabaseOps`, `terraformOps`, `vercelOps`, `notionOps`, `gmailOps`, plus
-`security`, `logger`, `commandOps`, `fileOps`, `directoryOps`, `envLoader`, `projectOps`,
-`workflowOps`, and `boundaryAttest`):
+You need Node.js 22.13 or newer.
 
 ```bash
-npm test                        # run the full suite
-npm run test:boundaryattest     # run just the BoundaryAttest tests
+git clone https://github.com/KNIHAL/causly-server.git
+cd causly-server
+npm install
+cp .env.example .env     # add keys for the services you are working on
+npm run setup            # same as: causly-server init, pointed at this checkout
+npm run doctor           # check the setup
 ```
 
-New tool modules and changes are additionally verified manually against a real Claude Desktop
-instance before merging — restart Claude Desktop, exercise the tool through an actual
-conversation, and check `logs/activity.log`.
+When you run from a checkout, the `.env` in the repository is used, and logs and the secrets
+store stay in the repository folder. See [Environment variables](./configuration.md).
 
-## Adding a new tool module
+After a change, restart your editor and exercise the tool through a real conversation.
 
-Each service (GitHub, Vercel, Supabase, Notion, Sentry, etc.) lives in its own file under
-`tools/`, following the same shape:
+## Repository layout
 
-1. A `getToken()` helper that reads the relevant env var and throws a clear error if it's missing
-2. A shared `xFetch()` helper that wraps `fetch` with auth headers and consistent error
-   formatting
-3. One exported async function per operation, each taking a single destructured object argument
-4. Register each new function as a tool in `index.js` using `server.registerTool(...)`, with a
-   `zod` input schema and a short, clear `description`
+```text
+causly-server/
+├── index.js            Server entry: registers resources, prompts and packs, then connects stdio
+├── bin/causly.js       The CLI (init, setup, keys, doctor, status, toolsets, backup, ...)
+├── packs/              One file per tool pack, plus the registry and the manifest
+│   ├── registry.js     Every pack: name, description, core or on-demand
+│   ├── loader.js       Loads packs on demand
+│   └── manifest.json   Generated list of every tool, used by search_tools
+├── tools/              The implementation behind each pack (xxxOps.js) and shared modules
+│   ├── toolWrapper.js  The pipeline every tool call runs through
+│   ├── security.js     Permission levels, redaction, risk scanning
+│   ├── workspace.js    The workspace limit
+│   ├── services.js     Per-service setup and live key checks
+│   └── store.js        The local SQLite database
+├── prompts/            MCP prompts
+├── scripts/            build-manifest.mjs, agent-smoke.mjs
+├── tests/              One test file per module (vitest)
+└── .github/workflows/  CI
+```
 
-Keep functions small and single-purpose — one API call in, one plain-object result out. Avoid
-leaking raw API response shapes; map to a clean, minimal object.
+## Tests
+
+```bash
+npm test                      # the full suite (vitest)
+npm run test:boundaryattest   # only the BoundaryAttest tests
+node scripts/agent-smoke.mjs  # connect a plain MCP client and call tools end to end
+```
+
+CI runs on every pull request:
+
+- **cross-os** runs the unit tests and the agent smoke test on Ubuntu, macOS and Windows with
+  Node.js 22, then installs the published package and runs `causly-server doctor`.
+- **ci** checks the syntax of every file, checks that the server boots, and runs the
+  BoundaryAttest tests.
+
+Please also test by hand before you merge a new or changed tool:
+
+1. Connect your editor to your working copy.
+2. Restart the editor and exercise the tool in a real conversation.
+3. Run `causly-server doctor --test`.
+4. Check `logs/activity.log` to confirm the call succeeded and was logged as expected.
+
+## Add a tool pack
+
+A pack is a group of tools for one integration or job. Adding one touches five places.
+
+**1. Write the operations in `tools/yourServiceOps.js`.** One exported async function per
+operation, taking one destructured object and returning a small plain object. Do not leak raw API
+response shapes.
+
+```js
+import { requireEnv } from "./envLoader.js"; // read the key and fail with a clear message
+
+export async function listThings({ limit = 25 }) {
+  // call the API, then map the result to a minimal object
+}
+```
+
+**2. Register the tools in `packs/yourService.js`.** Wrap each function so it gets the safety
+layer, logging and error hints for free.
+
+```js
+import { z } from "zod";
+import { wrap } from "../tools/toolWrapper.js";
+import * as ops from "../tools/yourServiceOps.js";
+
+export default function register(server) {
+  server.registerTool(
+    "yourservice_list_things",
+    {
+      description: "List things. Say what comes back and what is untrusted.",
+      inputSchema: { limit: z.number().optional().describe("1-100, default 25") },
+    },
+    wrap("yourservice_list_things", ops.listThings)
+  );
+}
+```
+
+Keep descriptions short and concrete. They are what the agent reads. If a tool returns text
+written by other people, say so in the description so the agent treats it as data.
+
+**3. Add the pack to `packs/registry.js`** with a one-line `description` and `core: false`.
+
+**4. Set permission levels in `tools/security.js`.** Give every tool a level (`READ`, `LOW`,
+`MEDIUM`, `HIGH` or `DESTRUCTIVE`). A tool without one defaults to `MEDIUM`. Anything that sends
+something to other people or cannot be undone should be `HIGH` or `DESTRUCTIVE`, and accept a
+`confirm` argument.
+
+**5. Add setup support if it needs a key.** Describe the service in `tools/services.js` so
+`causly-server setup yourservice` and `doctor --test` work, and add the variable to
+`.env.example`.
+
+Then:
+
+```bash
+npm run build:manifest   # regenerate packs/manifest.json so search_tools finds your tools
+npm test
+```
+
+`npm publish` runs the manifest build and the tests automatically (`prepublishOnly`).
+
+Also write a test in `tests/`, and a docs page under `website/docs/server/tools/` with the tools
+table, setup, behavior and limits. Look at an existing page such as [Linear](./tools/linear.md)
+for the format.
 
 ## Pull requests
 
-- Keep PRs focused — one feature or fix per PR
-- Describe what you tested and how
-- If you're adding a new service integration, update the README's feature list and the Mermaid
-  workflow diagram if relevant
+- Keep each pull request to one feature or fix.
+- Describe what you changed, why, and how you tested it.
+- Update the docs page for any tool you add or change.
+- Open an issue first for anything large, so the approach can be agreed before you build it.
 
-Full contribution guide: [CONTRIBUTING.md](https://github.com/KNIHAL/causly-server/blob/main/CONTRIBUTING.md).
+## Reporting a security issue
+
+Please do not open a public issue. Follow
+[SECURITY.md](https://github.com/KNIHAL/causly-server/blob/master/SECURITY.md).

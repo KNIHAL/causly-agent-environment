@@ -12,7 +12,7 @@ sidebar_position: 8
    [sentry.io/settings/account/api/auth-tokens](https://sentry.io/settings/account/api/auth-tokens/)
    with at minimum `project:read` and `event:read` scopes — add `event:write` if you also want
    `resolve_issue`/`ignore_issue`/`add_comment` to work
-2. Add it to `.env` as `SENTRY_AUTH_TOKEN`
+2. Save it with `causly-server setup sentry` (variable: `SENTRY_AUTH_TOKEN`)
 
 Note: this is a **Sentry auth token**, not the DSN your app uses to *report* errors — those are
 two different credentials with different purposes.

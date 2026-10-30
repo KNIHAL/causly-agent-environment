@@ -1,84 +1,191 @@
 ---
-sidebar_position: 5
+sidebar_position: 2
+sidebar_label: Security
 ---
 
 # Security
 
-Every tool call is genuinely capable of changing your filesystem, your infrastructure, or your
-production systems — so nothing runs unexamined. Four things happen before (and around) every
-call, implemented in `tools/security.js`. This page covers the detailed model; see
-[Architecture](./architecture#the-security-layer) for how it fits into the overall request flow.
+Causly Server can read your files, run commands, push code and send messages. The controls below
+live inside the server, so they apply no matter which agent or editor is calling it.
 
-## 1. Permission classification
+Read the [limits](#what-is-not-protected) section too. These are guardrails against mistakes. They
+are not a sandbox.
 
-Every registered tool carries a fixed risk level:
+## Overview
 
-| Level | Meaning | Example |
+| Control | What it does |
+|---|---|
+| [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need `confirm: true` |
+| [Workspace limit](#workspace-limit) | Restrict file and command tools to the folders you choose |
+| [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
+| [Protected paths](#protected-paths) | System folders cannot be written or deleted |
+| [Secret redaction](#secret-redaction) | Tokens and passwords are removed before anything is logged |
+| [Encrypted secrets](#encrypted-secrets) | A local store, AES-256-GCM, with a key only you hold |
+| [Activity log](#activity-log) | A structured record of every tool call |
+
+## Permission levels
+
+Every tool has one of five levels.
+
+| Level | Meaning | Examples |
 |---|---|---|
-| `READ` | Reads data, changes nothing | `git_status`, `docker_ps`, `sentry_list_issues` |
-| `LOW` | Small, easily reversible changes | `git_add`, `notion_get_comments` |
-| `MEDIUM` | Meaningful but recoverable changes | `git_commit`, `ship_change` |
-| `HIGH` | Real-world side effects, needs explicit confirmation | `docker_build`, `deploy_project`, `slack_send_message` |
-| `DESTRUCTIVE` | Hard or impossible to undo, needs explicit confirmation | `terraform_destroy`, `docker_rm`, `secrets_delete` |
+| `READ` | No side effects | `read_file`, `git_status`, `github_list_issues`, `calendar_list_events` |
+| `LOW` | Normal work, small and easy to undo | `git_add`, `create_directory`, `pipeline_add_lead`, `reminder_create` |
+| `MEDIUM` | Changes files or project state | `write_file`, `edit_file`, `git_commit`, `git_push`, `calendar_create_event` |
+| `HIGH` | Hard to undo or visible to others | `run_command`, `github_merge_pull_request`, `vercel_create_deployment`, `slack_send_message`, `gmail_send`, `terraform_apply`, `ship_change`, `deploy_project` |
+| `DESTRUCTIVE` | Deletes or cannot be reversed | `delete_file`, `delete_directory`, `terraform_destroy`, `docker_remove`, `calendar_delete_event`, `meeting_delete` |
 
-## 2. The approval gate
+A tool that is not in the table defaults to `MEDIUM`.
 
-Any `HIGH` or `DESTRUCTIVE` tool is rejected unless the caller passes `confirm: true` in its
-input. This means Claude has to explicitly decide "yes, actually do this" — it can't be
-accidentally triggered by a model just following a chain of reasoning.
+### The approval gate
 
-## 3. Secret redaction
+`READ`, `LOW` and `MEDIUM` tools run immediately. `HIGH` and `DESTRUCTIVE` tools are refused unless
+the call includes `confirm: true`:
 
-Before anything is written to `logs/activity.log`, every input is scanned and known-sensitive
-fields (tokens, passwords, keys, connection strings, anything matching common credential
-patterns) are replaced with a redacted placeholder — regardless of which tool or field they
-appear in.
-
-## 4. Command and path risk scanning
-
-- `run_command` inputs are scanned for genuinely destructive patterns (drive wipes, `format`,
-  `shutdown`) which are hard-blocked outright, and for elevated-risk-but-sometimes-legitimate
-  patterns (force-push, `DROP TABLE`, `curl | bash`, `sudo`) which are flagged in the audit log
-  rather than silently allowed.
-- File and directory tools reject any target path that resolves inside a protected system
-  directory (e.g. `C:\Windows`, `/etc`), regardless of how the path was constructed.
-
-## Structured audit log
-
-Every tool call — regardless of outcome — appends one JSON object to `logs/activity.log`:
-
-```json
-{"timestamp":"2026-09-02T11:29:08Z","operation_id":"a1b2c3","tool":"docker_build","risk":"HIGH","status":"ok","duration_ms":4210,"input":{"context_dir":"...","tag":"...","confirm":true}}
+```text
+Blocked: 'github_merge_pull_request' is a HIGH-risk action and requires explicit
+confirmation. Re-call with confirm: true to proceed.
 ```
 
-This is what makes the server auditable after the fact — a real trail of what ran, when, at what
-risk level, and how long it took.
+The gate forces the agent to make a conscious second call, and a well-behaved agent asks you
+before making it. It is not a separate approval screen: an agent that decides to pass
+`confirm: true` can do so. Treat it as a seatbelt. If you want a hard boundary, use the
+[workspace limit](#workspace-limit) and keep your keys scoped to what you are comfortable with.
 
-## Optional evidence layer: BoundaryAttest receipts (proof of concept)
+Some tools add their own confirmation on top of their level. For example, calendar tools require
+`confirm` when they would email guests, and `meeting_transcribe` requires it because it uploads
+audio to Groq.
 
-An opt-in adapter can additionally produce portable, signed receipts for three workflow tools —
-`ship_change`, `verify_ci_fix`, `deploy_project`. It is evidence only: it does not approve,
-block, execute, or change a tool call, and does not replace any of the mechanisms above. See
-[BoundaryAttest](./tools/boundaryattest) for the full spec, and note its own stated limits — this
-is a proof of concept, not production key management.
+## Workspace limit
 
-## Security best practices for operators
+By default, file tools can reach any folder your user can. Turn on the workspace limit to confine
+them:
 
-- Never commit `.env` or the encrypted secrets file (`.causly-secrets.enc`) — both are
-  git-ignored by default.
-- Set `SECRETS_MASTER_KEY` to a securely generated, unique value per environment, and rotate it
-  periodically with `secrets_rotate_key` (see [Secrets manager](./tools/secrets)).
-- Review any `HIGH` or `DESTRUCTIVE` tool call before confirming it, especially `run_command`,
-  `delete_file`, `delete_directory`, and `terraform_destroy`.
-- Scope API tokens (`GITHUB_TOKEN`, `VERCEL_TOKEN`, `SUPABASE_ACCESS_TOKEN`, `SLACK_BOT_TOKEN`,
-  Gmail OAuth credentials, etc.) as narrowly as the platform allows, rather than using
-  account-wide admin tokens.
-- Run the server under a system user with the minimum filesystem and process permissions it
-  actually needs.
-- Keep dependencies up to date (`npm audit`).
+```bash
+causly-server init --workspace D:\my-project
+```
+
+You can allow several folders. Separate them with `;` on Windows or `:` on macOS and Linux. This
+sets `CAUSLY_WORKSPACE`. See [Environment variables](./configuration.md).
+
+With a limit on, Causly checks these arguments of every tool call: `path`, `paths`, `root_path`,
+`cwd`, `repo_path`, `dir`, `project_dir`, `context_dir`, `dockerfile`, `source`, `destination`,
+`store_path`, `plan_file`, `var_file` and `transcript_file`. Any value outside the allowed folders
+is blocked:
+
+```text
+Blocked: 'read_file' path "C:\Users\you\.ssh\id_rsa" is outside the allowed workspace
+(CAUSLY_WORKSPACE).
+```
+
+Details:
+
+- Symbolic links are resolved first, so a link inside the workspace cannot point outside it.
+- New files are checked too: the nearest existing parent folder must be inside the workspace.
+- Path comparison is case-insensitive on Windows.
+- `causly-server doctor` and `status` show whether a limit is on.
+
+## Command safety
+
+`run_command` is a `HIGH` tool. Before it runs a command:
+
+- **Blocked outright:** `rm -rf /`, deleting or formatting a whole drive (`format C:`,
+  `del /s /q C:\`), a fork bomb, `shutdown` or `restart-computer`, and `reg delete`. If a harmless
+  command trips the filter, rephrase it.
+- **Flagged and logged:** commands that match risky signals still run, but the audit log records
+  why they were risky. The signals are deleting files, `DROP` and `TRUNCATE` statements,
+  force-pushes, hard resets, piping a download into a shell, `chmod -R 777`, privilege elevation
+  (`sudo`, `runas`), writing to a disk device, `npm publish`, and `gh repo delete`.
+
+Commands run with a 60 second default timeout and output is capped at 20,000 characters. On
+Windows they run in PowerShell.
+
+## Protected paths
+
+File and directory tools refuse to write or delete inside Windows system folders:
+`C:\Windows`, `C:\Program Files`, `C:\Program Files (x86)`, `C:\ProgramData`,
+`C:\Users\Default`, `C:\Users\Public`, `C:\System Volume Information`, `C:\Recovery` and `C:\Boot`.
+
+This list is Windows-specific. On macOS and Linux, use the workspace limit to keep file tools
+away from system folders.
+
+## Secret redaction
+
+Before anything is written to the activity log, Causly walks the tool input and replaces the
+value of any field whose name contains `token`, `password`, `passwd`, `secret`, `api_key`,
+`apikey`, `authorization`, `refresh_token`, `access_token`, `credential`, `private_key`,
+`client_secret`, `auth_token` or `db_pass` with `[REDACTED]`. Free-text error messages are scrubbed
+for patterns such as `token=abc123`. Live key checks (`doctor --test`) also scrub the key from
+their error messages.
+
+Redaction works on field names and simple `key=value` text. A secret pasted into an unrelated
+free-text field is not detected.
+
+## Encrypted secrets
+
+The [secrets tools](./tools/secrets.md) keep values in a local encrypted store. Each value is
+encrypted with AES-256-GCM, using a fresh random initialization vector, under a master key that
+you generate and keep in `SECRETS_MASTER_KEY`. Nothing is sent to an external vault. Without the
+master key, the store cannot be read, and it cannot be recovered if you lose it.
+
+`secrets_set` and `secrets_rotate_key` are `HIGH`, `secrets_get` is `MEDIUM`, and `secrets_delete`
+is `DESTRUCTIVE`.
+
+## Activity log
+
+Every tool call, including blocked ones, appends one JSON line to `~/.causly/logs/activity.log`:
+
+```json
+{
+  "timestamp": "2026-10-29T09:14:03.221Z",
+  "operation_id": "5f0c...",
+  "tool": "github_merge_pull_request",
+  "risk_level": "HIGH",
+  "status": "BLOCKED",
+  "input": { "owner": "acme", "repo": "web", "pull_number": 42 },
+  "details": "'github_merge_pull_request' is a HIGH-risk action and requires explicit confirmation...",
+  "duration_ms": null
+}
+```
+
+`status` is `SUCCESS`, `ERROR` or `BLOCKED`. Inputs are redacted before they are written. Logging
+never interrupts a tool call: if writing the log fails, the call still completes.
+
+## Privacy
+
+Causly Server has no Causly cloud and no Causly account. Your keys are in `~/.causly/.env` and
+your pipeline, meetings and reminders are in a local SQLite file.
+
+Data leaves your machine only to a service you configured, and only when a tool for that service
+runs: for example GitHub, Gmail, Telegram, or Groq for transcription. Two cases are worth knowing:
+
+- Audio is uploaded to Groq only when you confirm a `meeting_transcribe` call.
+- `status` and `doctor` ask the npm registry for the latest version, at most once a day. Turn it
+  off with `CAUSLY_UPDATE_CHECK=off`.
+
+## What is not protected
+
+Be clear about the limits of these controls.
+
+- **The workspace limit is a guardrail, not a sandbox.** It checks path arguments. It does not
+  inspect the text of a shell command or Docker volume mounts, so a command can still reach files
+  the limit would block for `read_file`.
+- **Commands inherit the server's environment.** A command run with `run_command` can see the same
+  environment variables as the server, which includes the keys loaded from your settings file.
+  Only run Causly Server with an agent you trust, and use scoped, revocable keys.
+- **The approval gate is a flag, not a screen.** See [above](#the-approval-gate).
+- **Anything the agent reads can influence it.** Web pages, emails, issues and calendar entries
+  are untrusted text. Prompt injection through them is a risk for any agent with tools. Prefer
+  read-only keys where you can, and keep `confirm` decisions with you.
+- **Keys are as powerful as you make them.** Causly can only do what your tokens allow. Create
+  fine-grained tokens with the smallest scopes you need.
 
 ## Reporting a vulnerability
 
-Do not open a public GitHub issue for security vulnerabilities. Use GitHub's private
-vulnerability reporting feature on the repository, or email the maintainer directly. Full policy,
-scope, and disclosure process: [SECURITY.md](https://github.com/KNIHAL/causly-server/blob/main/SECURITY.md).
+Please do not open a public issue for a security problem. Follow the instructions in
+[SECURITY.md](https://github.com/KNIHAL/causly-server/blob/master/SECURITY.md).
+
+## BoundaryAttest
+
+For `ship_change`, `verify_ci_fix` and `deploy_project`, Causly can optionally produce a signed
+receipt of what happened. It is off by default. See [BoundaryAttest](./tools/boundaryattest.md).

@@ -31,10 +31,10 @@ installed). Windows-style paths (`D:\...`) passed to `docker_build`, `docker_run
 | `docker_remove_image` | DESTRUCTIVE | Remove an image |
 | `docker_logs` | READ | Get logs from a container |
 | `docker_inspect` | READ | Full JSON metadata for a container/image |
-| `docker_exec` | MEDIUM | Run a command inside a running container |
+| `docker_exec` | HIGH | Run a command inside a running container |
 | `docker_stats` | READ | Live CPU/memory snapshot |
 | `docker_push` | HIGH | Push an image to a registry |
-| `docker_pull` | LOW | Pull an image from a registry |
+| `docker_pull` | MEDIUM | Pull an image from a registry |
 | `docker_compose_up` | HIGH | `docker compose up` for a project directory |
 | `docker_compose_down` | HIGH | `docker compose down` for a project directory |
 

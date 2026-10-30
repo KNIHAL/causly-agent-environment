@@ -9,10 +9,18 @@ in `tools/githubOps.js`.
 
 ## Setup
 
-1. Go to [github.com/settings/tokens](https://github.com/settings/tokens)
-2. Generate a token (classic or fine-grained) with `repo` scope — add `workflow` scope too if
-   you want `github_rerun_workflow` to work
-3. Add it to `.env` as `GITHUB_TOKEN`
+1. Create a [fine-grained token](https://github.com/settings/tokens?type=beta).
+2. Give it **Contents**, **Issues** and **Pull requests** (read and write). Add **Actions**
+   (read and write) if you want `github_rerun_workflow`, and **Administration** (read and write)
+   only if you want `github_create_repo` and `github_delete_repo`.
+3. Save it:
+
+```bash
+causly-server setup github
+```
+
+Setup checks the token live and shows which account it belongs to. The variable is
+`GITHUB_TOKEN`.
 
 ## Repos & issues
 
@@ -21,13 +29,13 @@ in `tools/githubOps.js`.
 | `github_get_authenticated_user` | READ | Get the authenticated user's profile |
 | `github_list_repos` | READ | List repositories for the authenticated user |
 | `github_get_repo` | READ | Get a repository's details (default branch, visibility, language, etc.) |
-| `github_create_repo` | HIGH | Create a new repository |
+| `github_create_repo` | MEDIUM | Create a new repository |
 | `github_delete_repo` | DESTRUCTIVE | Delete a repository |
 | `github_list_issues` | READ | List issues on a repository |
 | `github_get_issue` | READ | Get a single issue's details |
-| `github_create_issue` | MEDIUM | Create an issue |
+| `github_create_issue` | LOW | Create an issue |
 | `github_update_issue` | MEDIUM | Update an issue's title, body, state, or labels |
-| `github_add_comment` | MEDIUM | Add a comment to an issue or pull request |
+| `github_add_comment` | LOW | Add a comment to an issue or pull request |
 
 ## Pull requests
 

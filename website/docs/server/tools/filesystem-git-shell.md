@@ -1,82 +1,128 @@
 ---
-sidebar_position: 13
+sidebar_position: 1
 ---
 
-# Filesystem, Git & Shell
+# Files, git, shell and project
 
-The primitive layer everything else builds on — 31 tools across `fileOps.js`,
-`directoryOps.js`, `gitOps.js`, and `commandOps.js`. No API keys required — these operate
-directly on your local filesystem and git repositories.
+The primitive layer everything else builds on: 42 tools across five packs. They work directly on
+your local files and git repositories, so **no API keys are needed**.
 
-## Filesystem
-
-| Tool | Risk | What it does |
+| Pack | Tools | Loads |
 |---|---|---|
-| `read_file` | READ | Read the full text content of a single file |
-| `read_multiple_files` | READ | Read several files in one call |
-| `create_file` | LOW | Create a brand-new file |
-| `write_file` | MEDIUM | Create or completely overwrite a file with new content |
-| `edit_file` | MEDIUM | Exact string find-and-replace, without rewriting the whole file |
-| `delete_file` | HIGH | Delete a single file |
-| `move_file` | MEDIUM | Move or rename a file or directory |
-| `copy_file` | LOW | Copy a single file to a new location |
-| `get_file_info` | READ | Get metadata — size, type, created/modified timestamps |
+| `files` | 9 | Always (core) |
+| `directory` | 5 | Always (core) |
+| `command` | 1 | Always (core) |
+| `project` | 7 | Always (core) |
+| `git` | 20 | On demand. Add it with `causly-server toolsets add git` |
 
-`edit_file` requires an exact match for the text being replaced — the same targeted-patch
-approach used throughout this documentation to hand off code changes without re-reading (and
-re-paying tokens for) an entire large file.
+Every tool call goes through the [safety layer](../security.md): the optional workspace limit, the
+approval gate for `HIGH` and `DESTRUCTIVE` tools, and the activity log.
+
+## Files
+
+| Tool | Level | What it does |
+|---|---|---|
+| `read_file` | `READ` | Read the full text of one file |
+| `read_multiple_files` | `READ` | Read several files in one call. A failure on one file does not stop the others |
+| `create_file` | `MEDIUM` | Create a new file |
+| `write_file` | `MEDIUM` | Create a file or completely overwrite it, creating parent folders as needed |
+| `edit_file` | `MEDIUM` | Replace an exact piece of text without rewriting the whole file |
+| `delete_file` | `DESTRUCTIVE` | Delete one file. Needs `confirm: true` |
+| `move_file` | `MEDIUM` | Move or rename a file or folder |
+| `copy_file` | `LOW` | Copy one file |
+| `get_file_info` | `READ` | Size, type, and created and modified times |
+
+`edit_file` needs the old text to match exactly, and to be unique unless `replace_all` is set. It
+is the cheapest way to change a large file.
 
 ## Directories
 
-| Tool | Risk | What it does |
+| Tool | Level | What it does |
 |---|---|---|
-| `list_directory` | READ | List the immediate files and subfolders inside a directory |
-| `directory_tree` | READ | Recursively build a tree view of a directory's contents |
-| `create_directory` | LOW | Create a new directory, including missing parents |
-| `delete_directory` | HIGH | Delete a directory |
-| `search_files` | READ | Recursively search for files/folders whose name matches a pattern |
+| `list_directory` | `READ` | List the files and folders directly inside a folder |
+| `directory_tree` | `READ` | A recursive tree view. Skips `node_modules` and `.git`. `max_depth` defaults to 5 |
+| `create_directory` | `LOW` | Create a folder, including missing parents |
+| `delete_directory` | `DESTRUCTIVE` | Delete a folder, recursively by default. Needs `confirm: true` |
+| `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive |
 
-## Git — full lifecycle, 20 tools
+File and folder tools refuse to write or delete inside protected Windows system folders. See
+[Protected paths](../security.md#protected-paths).
 
-| Tool | Risk | What it does |
+## Git
+
+20 tools for the full local git lifecycle. Load them with `causly-server toolsets add git`.
+
+| Tool | Level | What it does |
 |---|---|---|
-| `git_init` | LOW | Initialize a new git repository |
-| `git_status` | READ | Show the working tree status |
-| `git_add` | LOW | Stage files for commit |
-| `git_commit` | MEDIUM | Commit staged changes with a message |
-| `git_push` | HIGH | Push commits to a remote |
-| `git_pull` | MEDIUM | Pull changes from a remote |
-| `git_log` | READ | Show recent commit history |
-| `git_diff` | READ | Show uncommitted changes, optionally scoped to one file |
-| `git_diff_stat` | READ | Summary of changes (files/insertions/deletions) rather than full diff |
-| `git_branch` | READ | List local branches and show the current branch |
-| `git_create_branch` | LOW | Create a new local branch, optionally checking it out |
-| `git_checkout` | MEDIUM | Checkout an existing local branch |
-| `git_merge` | HIGH | Merge a branch into the current branch |
-| `git_reset` | HIGH | Reset the current branch to a ref |
-| `git_stash` | MEDIUM | Stash working changes |
-| `git_show` | READ | Show details of a commit or object |
-| `git_remote` | READ | Manage/inspect git remotes |
-| `git_tag` | LOW | Manage tags |
-| `git_changed_files` | READ | List changed files with their change type (modified/untracked) |
-| `git_check_clean` | READ | Check whether the working tree is clean |
+| `git_init` | `LOW` | Initialize a repository |
+| `git_status` | `READ` | Working tree status |
+| `git_add` | `LOW` | Stage files |
+| `git_commit` | `MEDIUM` | Commit staged changes |
+| `git_push` | `MEDIUM` | Push commits to a remote |
+| `git_pull` | `MEDIUM` | Pull from a remote |
+| `git_log` | `READ` | Recent commit history |
+| `git_diff` | `READ` | Uncommitted changes, optionally for one file |
+| `git_diff_stat` | `READ` | A summary of files, insertions and deletions instead of the full diff |
+| `git_branch` | `READ` | List local branches and show the current one |
+| `git_create_branch` | `LOW` | Create a branch, optionally checking it out |
+| `git_checkout` | `MEDIUM` | Check out an existing branch |
+| `git_merge` | `MEDIUM` | Merge a branch into the current one |
+| `git_reset` | `HIGH` | Reset the current branch to a ref. Needs `confirm: true` |
+| `git_stash` | `LOW` | Stash working changes |
+| `git_show` | `READ` | Details of a commit or object |
+| `git_remote` | `MEDIUM` | Manage and inspect remotes |
+| `git_tag` | `LOW` | Manage tags |
+| `git_changed_files` | `READ` | Changed files with their change type |
+| `git_check_clean` | `READ` | Whether the working tree is clean |
+
+Commits stay local until you push. For a safe end-to-end flow that runs checks first, see
+[`ship_change`](./workflow-tools.md).
+
+## Project intelligence
+
+7 tools that understand what kind of project a folder is and run its own commands, so your agent
+does not have to guess whether to run `npm test`, `pytest` or `cargo test`.
+
+| Tool | Level | What it does |
+|---|---|---|
+| `project_detect` | `READ` | Detect the language, framework and package manager from manifest files |
+| `project_info` | `READ` | Language, framework, package manager, the resolved test, lint, typecheck and build commands, and the git branch and remotes |
+| `project_health` | `READ` | Git cleanliness and ahead or behind counts, whether dependencies are installed, and which env files exist |
+| `run_tests` | `LOW` | Detect and run the project's test command. Returns stdout, stderr and the exit code |
+| `run_lint` | `LOW` | Detect and run the lint command |
+| `run_typecheck` | `LOW` | Detect and run the typecheck command |
+| `run_build` | `LOW` | Detect and run the build command |
+
+The same information is available as [MCP resources](../architecture.md#mcp-resources), which a
+client can attach to a conversation.
 
 ## Shell
 
-**`run_command`** (risk varies by content) — executes an arbitrary shell command, scanned by the
-[security layer](../security#4-command-and-path-risk-scanning) for both hard-blocked
-destructive patterns (drive wipes, `format`, `shutdown`) and elevated-risk-but-flaggable ones
-(force-push, `DROP TABLE`, `curl | bash`, `sudo`) before running.
+`run_command` runs a shell command in a folder you give it. It is a `HIGH` tool, so it needs
+`confirm: true`.
 
-On Windows, this runs through PowerShell rather than `cmd.exe`, so multi-statement scripts and
-PowerShell-native commands work correctly instead of failing on syntax `cmd.exe` doesn't
-understand.
+| Argument | Notes |
+|---|---|
+| `command` | The command to run |
+| `cwd` | The working folder. Must be inside your [workspace](../security.md#workspace-limit) if a limit is on |
+| `timeout_ms` | Default 60,000 (one minute) |
+| `confirm` | Must be `true` |
 
-## Example
+Output is capped at 20,000 characters. On Windows, commands run through PowerShell, not
+`cmd.exe`, so PowerShell syntax works. Catastrophic commands are blocked and risky ones are
+flagged. See [Command safety](../security.md#command-safety).
 
+Commands inherit the server's environment, including your keys. See
+[What is not protected](../security.md#what-is-not-protected).
+
+## Examples
+
+```text
+"Show me what changed since the last commit, then commit it as 'fix: handle empty response'."
 ```
-"Show me what changed since the last commit, then commit it as 'fix: handle empty
-response from API'."
-```
+Claude calls `git_diff`, `git_add` and `git_commit`.
 
-Claude calls `git_diff` → `git_add` → `git_commit` with your message.
+```text
+"Run the tests and tell me what fails."
+```
+Claude calls `project_info` to learn the stack, then `run_tests`.

@@ -18,7 +18,8 @@ sidebar_position: 11
    - `users:read` — look up user info
    - `channels:history`, `groups:history` — read message history
 3. Install the app to your workspace
-4. Copy the **Bot User OAuth Token** (`xoxb-...`) into `.env` as `SLACK_BOT_TOKEN`
+4. Copy the **Bot User OAuth Token** (`xoxb-...`) and save it with `causly-server setup slack`
+   (variable: `SLACK_BOT_TOKEN`)
 
 ## Tools
 

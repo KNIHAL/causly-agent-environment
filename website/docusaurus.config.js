@@ -18,7 +18,11 @@ const config = {
   projectName: 'agenv',
 
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   i18n: {
     defaultLocale: 'en',
@@ -84,9 +88,9 @@ const config = {
           {
             title: 'Project',
             items: [
-              {label: 'Roadmap', href: 'https://github.com/KNIHAL/causly-server/blob/main/ROADMAP.md'},
-              {label: 'Changelog', href: 'https://github.com/KNIHAL/causly-server/blob/main/CHANGELOG.md'},
-              {label: 'Contributing', href: 'https://github.com/KNIHAL/causly-server/blob/main/CONTRIBUTING.md'},
+              {label: 'Roadmap', href: 'https://github.com/KNIHAL/causly-server/blob/master/ROADMAP.md'},
+              {label: 'Changelog', href: 'https://github.com/KNIHAL/causly-server/blob/master/CHANGELOG.md'},
+              {label: 'Contributing', href: 'https://github.com/KNIHAL/causly-server/blob/master/CONTRIBUTING.md'},
             ],
           },
           {
