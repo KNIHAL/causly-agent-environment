@@ -1,217 +1,105 @@
-export default function TermsOfService() {
-    return (
-        <main className="min-h-screen bg-[#030b0d] px-5 py-20 text-white sm:px-8 lg:px-12">
-            <article className="mx-auto max-w-4xl">
-                <p className="text-xs font-medium tracking-[0.25em] text-[#35d6c5]">
-                    CAUSLY
-                </p>
+import type { Metadata } from "next";
+import { LegalPage, LegalSection, LegalList } from "@/components/legal";
+import { site } from "@/lib/site";
 
-                <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">
-                    Terms of Service
-                </h1>
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description: "The terms for using the Causly website and Causly Server.",
+  alternates: { canonical: "/terms" },
+};
 
-                <p className="mt-4 text-sm text-white/40">
-                    Last updated: September 6, 2026
-                </p>
+export default function Terms() {
+  return (
+    <LegalPage title="Terms of Service" updated="October 31, 2026">
+      <LegalSection title="1. Acceptance">
+        <p>
+          By using this website or Causly Server, you agree to these terms. If you do not agree, do
+          not use them.
+        </p>
+      </LegalSection>
 
-                <div className="mt-12 space-y-10 text-[15px] leading-7 text-white/60">
-                    <Section title="1. Acceptance of Terms">
-                        <p>
-                            These Terms of Service govern your access to and use of Causly
-                            websites, software, products, and services.
-                        </p>
+      <LegalSection title="2. The software">
+        <p>
+          Causly Server is open-source software released under the{" "}
+          <a className="text-accent hover:text-accent-bright" href={site.license} target="_blank" rel="noopener noreferrer">
+            MIT License
+          </a>
+          . The license governs your right to use, copy, modify and distribute the software. If
+          these terms and the license conflict about the software itself, the license applies.
+        </p>
+      </LegalSection>
 
-                        <p className="mt-4">
-                            By accessing or using Causly, you agree to be bound by these
-                            Terms. If you do not agree with these Terms, you should not use
-                            the services.
-                        </p>
-                    </Section>
+      <LegalSection title="3. Your responsibility">
+        <p>
+          Causly Server lets an AI agent read files, run commands, push code, send messages and
+          change data in services you connect. You are responsible for:
+        </p>
+        <LegalList
+          items={[
+            "The keys and permissions you give the software, and keeping them secure.",
+            "Reviewing and approving actions, including any call made with confirm: true.",
+            "The agent and model you connect, and what they do with the tools you allow.",
+            "Keeping backups of important data before running destructive actions.",
+            "Complying with the laws and the terms of the third-party services you use.",
+          ]}
+        />
+      </LegalSection>
 
-                    <Section title="2. Causly Services">
-                        <p>
-                            Causly provides infrastructure and execution capabilities that
-                            allow AI agents and users to interact with software environments,
-                            code, files, tools, and other resources.
-                        </p>
+      <LegalSection title="4. Safety features are guardrails">
+        <p>
+          Permission levels, the approval gate, the workspace limit and command checks reduce the
+          risk of mistakes. They are not a sandbox and do not guarantee that an agent cannot cause
+          harm. See the security documentation for what is and is not protected.
+        </p>
+      </LegalSection>
 
-                        <p className="mt-4">
-                            Causly may provide both open-source software intended to run in
-                            user-controlled environments and hosted services operated by
-                            Causly.
-                        </p>
-                    </Section>
+      <LegalSection title="5. Third-party services">
+        <p>
+          Causly Server connects to services such as GitHub, Vercel, Google, Slack and others using
+          your credentials. Those services are not operated by Causly and are governed by their own
+          terms.
+        </p>
+      </LegalSection>
 
-                    <Section title="3. Your Responsibilities">
-                        <p>You are responsible for:</p>
+      <LegalSection title="6. Acceptable use">
+        <p>
+          Do not use the software to break the law, violate the rights of others, access systems
+          without permission, or attack the services it connects to.
+        </p>
+      </LegalSection>
 
-                        <ul className="mt-4 list-disc space-y-2 pl-5">
-                            <li>
-                                The instructions, code, files, and resources you provide or
-                                make accessible to an AI agent.
-                            </li>
-                            <li>
-                                Ensuring that your use of Causly complies with applicable laws.
-                            </li>
-                            <li>
-                                Maintaining appropriate permissions for systems and resources
-                                connected to Causly.
-                            </li>
-                            <li>
-                                Protecting credentials, tokens, and other authentication
-                                information under your control.
-                            </li>
-                            <li>
-                                Reviewing and validating actions performed by AI agents where
-                                appropriate.
-                            </li>
-                        </ul>
-                    </Section>
+      <LegalSection title="7. No warranty">
+        <p>
+          The software and this website are provided &quot;as is&quot; and &quot;as available&quot;,
+          without warranties of any kind, express or implied, including fitness for a particular
+          purpose, and non-infringement. We do not promise uninterrupted or error-free operation.
+        </p>
+      </LegalSection>
 
-                    <Section title="4. AI-Generated and Agent-Performed Actions">
-                        <p>
-                            AI agents can produce unexpected outputs or perform unintended
-                            actions. Causly provides execution infrastructure and does not
-                            guarantee that an AI agent will always behave as intended.
-                        </p>
+      <LegalSection title="8. Limitation of liability">
+        <p>
+          To the maximum extent permitted by applicable law, Causly and its contributors are not
+          liable for any indirect, incidental, special or consequential damages, or for loss of data,
+          profits or business, arising from your use of the software or website, including actions
+          taken by an AI agent using the software.
+        </p>
+      </LegalSection>
 
-                        <p className="mt-4">
-                            You are responsible for determining which agents, instructions,
-                            tools, permissions, and environments are appropriate for your
-                            use case.
-                        </p>
-                    </Section>
+      <LegalSection title="9. Changes">
+        <p>
+          We may update these terms from time to time. The date above shows the latest revision.
+          Continued use after a change means you accept the updated terms.
+        </p>
+      </LegalSection>
 
-                    <Section title="5. Local Software">
-                        <p>
-                            Causly OSS may be installed and operated in environments
-                            controlled by you. You are responsible for your local machine,
-                            operating system, network, credentials, connected services, and
-                            any actions performed within that environment.
-                        </p>
-                    </Section>
-
-                    <Section title="6. Hosted Services">
-                        <p>
-                            Causly Hosted provides managed execution infrastructure subject
-                            to the applicable service configuration, usage limits, and
-                            policies.
-                        </p>
-
-                        <p className="mt-4">
-                            We may modify, suspend, or discontinue parts of the hosted
-                            service when reasonably necessary for maintenance, security,
-                            product development, or other operational reasons.
-                        </p>
-                    </Section>
-
-                    <Section title="7. Prohibited Use">
-                        <p>
-                            You may not use Causly to violate applicable laws, obtain
-                            unauthorized access to systems or data, distribute malicious
-                            software, interfere with other users or infrastructure, or
-                            otherwise abuse the service.
-                        </p>
-
-                        <p className="mt-4">
-                            We reserve the right to restrict or suspend access where we
-                            reasonably believe the service is being abused or used in a way
-                            that creates security, legal, or operational risks.
-                        </p>
-                    </Section>
-
-                    <Section title="8. Intellectual Property">
-                        <p>
-                            Causly and its associated software, branding, documentation,
-                            designs, and other materials remain the property of Causly or
-                            their respective licensors, except where explicitly provided
-                            under an applicable open-source license.
-                        </p>
-                    </Section>
-
-                    <Section title="9. Your Content">
-                        <p>
-                            You retain ownership of content, code, files, and other materials
-                            that you provide to Causly, subject to the rights necessary for
-                            us to operate the services you request.
-                        </p>
-                    </Section>
-
-                    <Section title="10. Third-Party Services">
-                        <p>
-                            Causly may integrate with third-party services, AI models,
-                            infrastructure providers, developer tools, and other platforms.
-                        </p>
-
-                        <p className="mt-4">
-                            Your use of those services may be governed by separate terms and
-                            policies established by the respective providers.
-                        </p>
-                    </Section>
-
-                    <Section title="11. Availability">
-                        <p>
-                            We aim to provide reliable services, but we do not guarantee that
-                            Causly will always be available, uninterrupted, error-free, or
-                            suitable for every use case.
-                        </p>
-                    </Section>
-
-                    <Section title="12. Disclaimer">
-                        <p>
-                            Causly is provided on an “as is” and “as available” basis to the
-                            maximum extent permitted by applicable law. We disclaim
-                            warranties that are not expressly stated in these Terms.
-                        </p>
-                    </Section>
-
-                    <Section title="13. Limitation of Liability">
-                        <p>
-                            To the maximum extent permitted by applicable law, Causly and its
-                            operators will not be liable for indirect, incidental, special,
-                            consequential, or similar damages arising from your use of the
-                            services.
-                        </p>
-                    </Section>
-
-                    <Section title="14. Changes to These Terms">
-                        <p>
-                            We may update these Terms from time to time. Updated Terms will
-                            be published on this page with a revised effective date.
-                            Continued use of the services after the updated Terms become
-                            effective constitutes acceptance of the changes.
-                        </p>
-                    </Section>
-
-                    <Section title="15. Contact">
-                        <p>
-                            Questions regarding these Terms can be sent to:
-                        </p>
-
-                        <p className="mt-4 text-[#35d6c5]">
-                            <a href="mailto:nihal@causly.in">nihal@causly.in</a>
-                        </p>
-                    </Section>
-                </div>
-            </article>
-        </main>
-    );
-}
-
-function Section({
-    title,
-    children,
-}: {
-    title: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <section>
-            <h2 className="text-xl font-semibold tracking-tight text-white">
-                {title}
-            </h2>
-
-            <div className="mt-4">{children}</div>
-        </section>
-    );
+      <LegalSection title="10. Contact">
+        <p>
+          Questions about these terms:{" "}
+          <a className="text-accent hover:text-accent-bright" href={`mailto:${site.email}`}>
+            {site.email}
+          </a>
+        </p>
+      </LegalSection>
+    </LegalPage>
+  );
 }

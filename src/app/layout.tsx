@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
+import { site } from "@/lib/site";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -14,42 +15,50 @@ const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500", "600"],
 });
 
-const siteUrl = "https://agenv.causly.in";
-
-const description =
-  "Causly Agent Environment gives AI agents a secure execution environment to build, test, deploy, and operate real software and infrastructure.";
+const title = "Causly Server — Open-source MCP server for AI agents";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(site.url),
 
   title: {
-    default: "Causly Agent Environment",
-    template: "%s — Causly Agent Environment",
+    default: title,
+    template: "%s — Causly Server",
   },
 
-  description,
+  description: site.description,
+
+  applicationName: "Causly Server",
+  authors: [{ name: "Kumar Nihal" }],
+  creator: "Kumar Nihal",
 
   keywords: [
-    "Causly Agent Environment",
-    "AI agent environment",
-    "AI execution environment",
-    "MCP server",
-    "AI DevOps",
-    "AI coding agent",
     "Causly Server",
     "causly-server",
+    "MCP server",
+    "Model Context Protocol",
+    "AI agent tools",
+    "AI technical co-founder",
+    "AI DevOps",
+    "Claude Desktop MCP",
+    "Cursor MCP",
+    "open source MCP server",
   ],
 
+  alternates: { canonical: "/" },
+
+  robots: { index: true, follow: true },
+
   openGraph: {
-    title: "Causly Agent Environment",
-    description,
-    url: siteUrl,
-    siteName: "Causly Agent Environment",
+    title,
+    description: site.description,
+    url: site.url,
+    siteName: "Causly Server",
     images: [
       {
         url: "/og.png",
         width: 1200,
         height: 630,
+        alt: "Causly Server — turn any AI agent into your technical co-founder",
       },
     ],
     locale: "en_US",
@@ -58,14 +67,35 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Causly Agent Environment",
-    description,
+    title,
+    description: site.description,
     images: ["/og.png"],
   },
 
   icons: {
     icon: "/favicon.png",
+    apple: "/favicon.png",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#02090b",
+  colorScheme: "dark",
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Causly Server",
+  description: site.description,
+  url: site.url,
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Windows, macOS, Linux",
+  license: site.license,
+  downloadUrl: site.npm,
+  codeRepository: site.github,
+  author: { "@type": "Person", name: "Kumar Nihal" },
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
 export default function RootLayout({
@@ -76,7 +106,11 @@ export default function RootLayout({
       lang="en"
       className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
-      <body className="relative min-h-full flex flex-col bg-background text-foreground">
+      <body className="relative flex min-h-full flex-col bg-background text-foreground">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
       </body>
     </html>
