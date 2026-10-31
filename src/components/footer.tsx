@@ -40,9 +40,12 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-[1200px] px-5 py-14 sm:px-8 sm:py-16">
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div className="col-span-2 max-w-[320px] md:col-span-1">
-            <Link href="/" className="inline-flex items-center" aria-label="Causly Server home">
+            <Link href="/" className="inline-flex items-center gap-2.5" aria-label="Causly Server home">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="Causly" className="h-auto w-[120px]" />
+              <img src="/logo.png" alt="" width={32} height={32} className="h-8 w-8 shrink-0" />
+              <span className="text-base font-semibold tracking-tight text-text-primary">
+                Causly<span className="font-medium text-text-muted"> Server</span>
+              </span>
             </Link>
             <p className="mt-5 text-sm leading-6 text-text-muted">
               The open-source MCP server that turns any AI agent into your technical co-founder.

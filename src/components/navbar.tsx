@@ -14,9 +14,12 @@ export default function Navbar() {
         aria-label="Primary"
         className="mx-auto flex h-[70px] w-full max-w-[1200px] items-center justify-between px-5 sm:px-8"
       >
-        <Link href="/" className="flex shrink-0 items-center" aria-label="Causly Server home">
+        <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="Causly Server home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Causly" className="h-auto w-[120px] object-contain sm:w-[136px]" />
+          <img src="/logo.png" alt="" width={36} height={36} className="h-9 w-9 shrink-0" />
+          <span className="text-[17px] font-semibold tracking-tight text-text-primary">
+            Causly<span className="font-medium text-text-muted"> Server</span>
+          </span>
         </Link>
 
         <div className="hidden items-center gap-8 lg:flex">
