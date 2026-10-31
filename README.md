@@ -20,7 +20,7 @@ one place. This repo is updated continuously as the environment grows.
 | **Runtime** | Execution runtime for agents | Coming soon |
 | **IDE** | Agent-native development environment | Coming soon |
 
-Docs for every product live at [`/docs`](https://agenv.causly.in/docs), organized by product in
+Docs for every product live at [`/docs`](https://server.causly.in/docs), organized by product in
 the sidebar.
 
 ## Docs

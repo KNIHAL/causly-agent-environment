@@ -3,7 +3,7 @@
 Thanks for wanting to contribute! This repo covers two things:
 
 - **`website/`** — the documentation site (Docusaurus) for every Causly Agent Environment product
-- **Landing page** (everything else at the repo root) — the public `agenv.causly.in` site
+- **Landing page** (everything else at the repo root) — the public `server.causly.in` site
 
 ## Docs contributions
 

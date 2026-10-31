@@ -3,7 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'Causly Docs',
+  title: 'Causly Server Docs',
   tagline: 'One conversation. Your whole stack.',
   favicon: 'img/favicon.png',
 
@@ -11,7 +11,7 @@ const config = {
     v4: true,
   },
 
-  url: 'https://agenv.causly.in',
+  url: 'https://server.causly.in',
   baseUrl: '/docs/',
 
   organizationName: 'KNIHAL',
@@ -50,13 +50,13 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/og.png',
       colorMode: {
         defaultMode: 'dark',
         respectPrefersColorScheme: false,
       },
       navbar: {
-        title: '',
+        title: 'Causly Server',
         logo: {
           alt: 'Causly',
           src: 'img/causly-logo.png',

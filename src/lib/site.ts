@@ -1,6 +1,6 @@
 export const site = {
   name: "Causly Server",
-  url: "https://agenv.causly.in",
+  url: "https://server.causly.in",
   tagline: "The open-source MCP server that turns any AI agent into your technical co-founder",
   description:
     "Causly Server is an open-source MCP server that turns any AI agent into your technical co-founder. Ship code, find clients, track deals and run your day from one local server with built-in safety.",
