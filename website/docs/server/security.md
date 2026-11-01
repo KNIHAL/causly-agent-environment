@@ -19,6 +19,7 @@ are not a sandbox.
 | [Workspace limit](#workspace-limit) | Restrict file and command tools to the folders you choose |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
 | [Protected paths](#protected-paths) | System folders cannot be written or deleted |
+| [Network guard](#network-guard) | URL-fetching tools only reach public addresses |
 | [Secret redaction](#secret-redaction) | Tokens and passwords are removed before anything is logged |
 | [Encrypted secrets](#encrypted-secrets) | A local store, AES-256-GCM, with a key only you hold |
 | [Activity log](#activity-log) | A structured record of every tool call |
@@ -108,6 +109,19 @@ File and directory tools refuse to write or delete inside Windows system folders
 
 This list is Windows-specific. On macOS and Linux, use the workspace limit to keep file tools
 away from system folders.
+
+## Network guard
+
+`web_fetch`, `http_check` and the lead and SEO tools fetch URLs for the agent, so hostile page
+content could try to point them at your own network. They all go through one guard: only public
+addresses are allowed. Loopback (`127.0.0.1`, `localhost`), private ranges (`10.x`, `172.16.x` to
+`172.31.x`, `192.168.x`), link-local addresses (`169.254.x`, which includes cloud metadata
+services) and other reserved addresses are refused.
+
+The check runs when the connection is made, so a name that resolves to a private address is
+refused too, and it runs again on every redirect. Unusual spellings of an address (decimal, octal,
+hex, IPv4-mapped IPv6) are normalized before the check. Set `CAUSLY_ALLOW_PRIVATE_HOSTS=true` to
+switch the guard off, for example to read a local dev server.
 
 ## Secret redaction
 

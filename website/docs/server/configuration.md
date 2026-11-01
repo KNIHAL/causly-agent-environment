@@ -41,7 +41,7 @@ restart.
 | `CAUSLY_REMINDER_NOTIFY` | On | Set to `off` to stop due reminders being sent to Telegram. They are still announced in the server log |
 | `CAUSLY_UPDATE_CHECK` | On | Set to `off` to stop `status` and `doctor` from checking the npm registry for a newer version |
 | `CAUSLY_SEARCH_PROVIDER` | Automatic | Force the `web_search` provider: `tavily` or `duckduckgo`. By default Tavily is used when `TAVILY_API_KEY` is set, otherwise DuckDuckGo. `tavily` without a key returns an error |
-| `CAUSLY_ALLOW_PRIVATE_HOSTS` | Off | `web_fetch` refuses private, loopback and link-local addresses. Set to `true` to allow them, for example to read a local dev server |
+| `CAUSLY_ALLOW_PRIVATE_HOSTS` | Off | `web_fetch`, `http_check` and the lead and SEO tools refuse private, loopback and link-local addresses. Set to `true` to allow them, for example to read a local dev server |
 
 ### Where data is stored
 

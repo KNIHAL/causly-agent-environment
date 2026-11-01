@@ -27,7 +27,7 @@ sidebar_position: 9
 | `vercel_get_deployment_logs` | READ | Get build/runtime logs for a deployment |
 | `vercel_get_deployment_events` | READ | Get a deployment's build/progress state |
 | `vercel_cancel_deployment` | MEDIUM | Cancel a currently building or queued deployment |
-| `http_check` | READ | Hit a URL and report status code, health, and response time |
+| `http_check` | READ | Hit a URL and report status code, health, and response time. Refuses private, loopback and link-local addresses (see [Network guard](../security.md#network-guard)) |
 
 `vercel_create_deployment` resolves the numeric GitHub repository ID automatically from an
 `owner/repo` string before calling Vercel's API, since Vercel's deployment API requires the
