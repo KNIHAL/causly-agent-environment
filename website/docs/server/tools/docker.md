@@ -13,7 +13,7 @@ Windows with Docker Desktop. If that fails and you're on Windows, it automatical
 `wsl docker ...`, covering setups where Docker only exists inside WSL (no Docker Desktop
 installed). Windows-style paths (`D:\...`) passed to `docker_build`, `docker_run` (volumes), or
 `docker_compose_up`/`down` are automatically translated to their WSL equivalent
-(`/mnt/d/...`) when the WSL fallback is used.
+(`/mnt/d/...`) when the WSL fallback is used. For Compose, the folder is passed to `wsl --cd` as an argument of its own and never inside a shell command, so quotes, `;` or `$(...)` in a folder name cannot run anything.
 
 ## Tools
 
