@@ -45,7 +45,7 @@ is the cheapest way to change a large file.
 | `delete_directory` | `DESTRUCTIVE` | Delete a folder, recursively by default. Needs `confirm: true` |
 | `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive |
 
-File and folder tools refuse to write or delete inside protected Windows system folders. See
+File and folder tools check every path, including both ends of `copy_file` and `move_file`: they refuse to change system folders on Windows, macOS and Linux, and refuse to read or write credential folders such as `~/.ssh`. See
 [Protected paths](../security.md#protected-paths).
 
 ## Git

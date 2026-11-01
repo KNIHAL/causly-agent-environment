@@ -18,7 +18,7 @@ are not a sandbox.
 | [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need `confirm: true` |
 | [Workspace limit](#workspace-limit) | Restrict file and command tools to the folders you choose |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
-| [Protected paths](#protected-paths) | System folders cannot be written or deleted |
+| [Protected paths](#protected-paths) | System folders cannot be changed, credential folders cannot be read or written |
 | [Network guard](#network-guard) | URL-fetching tools only reach public addresses |
 | [Secret redaction](#secret-redaction) | Tokens and passwords are removed before anything is logged |
 | [Encrypted secrets](#encrypted-secrets) | A local store, AES-256-GCM, with a key only you hold |
@@ -103,13 +103,40 @@ Windows they run in PowerShell.
 
 ## Protected paths
 
-File and directory tools refuse to write or delete inside Windows system folders:
-`C:\Windows`, `C:\Program Files`, `C:\Program Files (x86)`, `C:\ProgramData`,
-`C:\Users\Default`, `C:\Users\Public`, `C:\System Volume Information`, `C:\Recovery` and `C:\Boot`.
+File and directory tools check every path before they touch it. Two kinds of location are protected.
 
-This list is Windows-specific. On macOS and Linux, use the workspace limit to keep file tools
-away from system folders.
+**System folders: writing and deleting are refused, reading is allowed.**
 
+| System | Protected folders |
+|---|---|
+| Windows | `C:\Windows`, `C:\Program Files`, `C:\Program Files (x86)`, `C:\ProgramData`, `C:\Users\Default`, `C:\Users\Public`, `C:\System Volume Information`, `C:\Recovery`, `C:\Boot`, plus the folders named by `SystemRoot` and `ProgramFiles` when Windows is installed elsewhere |
+| macOS | `/System`, `/Library`, `/usr`, `/bin`, `/sbin`, `/etc` (also `/private/etc`), `/private/var/db`, `/dev` |
+| Linux | `/etc`, `/usr`, `/bin`, `/sbin`, `/lib`, `/lib32`, `/lib64`, `/boot`, `/dev`, `/proc`, `/sys` |
+
+**Credential folders: reading and writing are both refused**, so an agent cannot read or replace
+your keys. These are `~/.ssh`, `~/.aws`, `~/.config/gcloud` and the OS keychain folders:
+`~/Library/Keychains` and `/Library/Keychains` on macOS, `~/.local/share/keyrings` on Linux, and on
+Windows the `Credentials`, `Protect` and `Vault` folders under `AppData\Roaming\Microsoft` and
+`AppData\Local\Microsoft`, plus `AppData\Roaming\gcloud`. This covers every user's home folder, not
+only yours.
+
+How a path is checked:
+
+- **Real path first.** `..`, symlinks, junctions and Windows 8.3 short names (`PROGRA~1`) are
+  resolved before the check, so a link into a protected folder is refused. This also applies to a
+  new file created inside a linked folder.
+- **Folder boundaries.** `C:\Windows.old` and `/etcetera` are not treated as inside `C:\Windows`
+  and `/etc`.
+- **Windows tricks.** Trailing dots and spaces, `\\?\` prefixes, the admin share of this machine
+  (`\\localhost\C$\Windows`), reserved device names (`CON`, `NUL`, `COM1`) and NTFS alternate data
+  streams (`file.txt::$DATA`) are refused.
+- **Search and tree listings** skip credential folders instead of listing them.
+- **Every file and directory tool** goes through the same check, including both ends of
+  `copy_file` and `move_file`, and the `store_path` of the secrets tools.
+
+The workspace limit above still applies on top and is the way to keep file tools inside your
+project folders. Shell commands run through `run_command` are not covered by this check; see
+[What is not protected](#what-is-not-protected).
 ## Network guard
 
 `web_fetch`, `http_check` and the lead and SEO tools fetch URLs for the agent, so hostile page

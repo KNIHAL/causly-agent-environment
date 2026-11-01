@@ -28,6 +28,10 @@ master key, the stored secrets cannot be recovered.
 Secrets are stored AES-256-GCM encrypted in `~/.causly/.causly-secrets.enc`. Never commit or share
 this file.
 
+Every tool also accepts an optional `store_path` to use a different store file. It is checked like any
+other path: system folders and credential folders (such as `~/.ssh` or `~/.aws`) are refused, and the
+check follows symlinks to the real location. See [Protected paths](../security.md#protected-paths).
+
 ## Tools
 
 | Tool | Risk | What it does |
