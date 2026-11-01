@@ -16,7 +16,6 @@ causly-server doctor --test   # also tests every configured key live
 | Problem | Fix |
 |---|---|
 | `causly-server` is not recognized after install | Open a new terminal so `PATH` refreshes. Check that your npm global folder (`npm config get prefix`) is on `PATH` |
-| `npm install` fails with `'node' is not recognized` in a postinstall script (Windows) | Retry with `npm install -g causly-server --ignore-scripts` |
 | `doctor` says Node.js is too old | Causly Server needs Node.js 22.13 or newer. Pipeline, meetings and reminders use the built-in `node:sqlite` module |
 | `init` says it could not find an editor | Pass one explicitly: `causly-server init --client claude`, `cursor` or `windsurf` |
 | `--workspace` is rejected | The folder must already exist |

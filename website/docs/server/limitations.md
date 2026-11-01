@@ -27,6 +27,7 @@ fix, see [Troubleshooting](./troubleshooting.md).
 - **Windows** is tested by hand. **macOS and Linux** are covered by the automated test suite on
   every change (CI runs on all three), but have had less hands-on use. Reports are welcome.
 - Docker tools fall back to `wsl docker` on Windows when Docker only exists inside WSL.
+- On Windows, commands run by `run_command` use the same Node.js as the server, so `npm install` with postinstall scripts works even when your editor starts the server with a stripped environment.
 
 ## Google
 
