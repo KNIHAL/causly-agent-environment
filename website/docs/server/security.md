@@ -114,11 +114,11 @@ away from system folders.
 Before anything is written to the activity log, Causly walks the tool input and replaces the
 value of any field whose name contains `token`, `password`, `passwd`, `secret`, `api_key`,
 `apikey`, `authorization`, `refresh_token`, `access_token`, `credential`, `private_key`,
-`client_secret`, `auth_token` or `db_pass` with `[REDACTED]`. Free-text error messages are scrubbed
-for patterns such as `token=abc123`. Live key checks (`doctor --test`) also scrub the key from
+`client_secret`, `auth_token`, `db_pass`, `connection_string`, `dsn` or `database_url` with `[REDACTED]`. Free-text error messages are scrubbed
+for patterns such as `token=abc123` or `"password": "..."`, passwords inside URLs (`postgres://user:password@host`), `Bearer` tokens and common token formats (GitHub, Slack, AWS and similar). Error messages returned to the agent are scrubbed the same way. Live key checks (`doctor --test`) also scrub the key from
 their error messages.
 
-Redaction works on field names and simple `key=value` text. A secret pasted into an unrelated
+Redaction works on field names, `key=value` text, URL credentials and well-known token formats. A secret of any other shape pasted into an unrelated
 free-text field is not detected.
 
 ## Encrypted secrets
