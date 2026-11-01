@@ -120,7 +120,7 @@ services) and other reserved addresses are refused.
 
 The check runs when the connection is made, so a name that resolves to a private address is
 refused too, and it runs again on every redirect. Unusual spellings of an address (decimal, octal,
-hex, IPv4-mapped IPv6) are normalized before the check. Set `CAUSLY_ALLOW_PRIVATE_HOSTS=true` to
+hex, IPv4-mapped IPv6) are normalized before the check, and IPv6 forms that carry an IPv4 address (6to4, ISATAP, Teredo) are judged by that address. Set `CAUSLY_ALLOW_PRIVATE_HOSTS=true` to
 switch the guard off, for example to read a local dev server.
 
 ## Secret redaction
