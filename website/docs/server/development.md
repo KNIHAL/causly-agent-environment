@@ -48,7 +48,7 @@ causly-server/
 ├── prompts/            MCP prompts
 ├── scripts/            build-manifest.mjs, agent-smoke.mjs
 ├── tests/              One test file per module (vitest)
-└── .github/workflows/  CI
+└── .github/             CI workflows and Dependabot
 ```
 
 ## Tests
@@ -62,9 +62,38 @@ node scripts/agent-smoke.mjs  # connect a plain MCP client and call tools end to
 CI runs on every pull request:
 
 - **cross-os** runs the unit tests and the agent smoke test on Ubuntu, macOS and Windows with
-  Node.js 22, then installs the published package and runs `causly-server doctor`.
-- **ci** checks the syntax of every file, checks that the server boots, and runs the
-  BoundaryAttest tests.
+  Node.js 22 and 24, then installs the published package and runs `causly-server doctor`. The
+  unit tests include the package contents check described below.
+- **ci** checks the syntax of every file and that the server boots (Node.js 22 and 24), runs the
+  BoundaryAttest tests, audits the production dependencies, and runs the docs drift test.
+
+CI installs with `npm ci` everywhere, so it uses exactly the versions in `package-lock.json`.
+
+### Automatic checks
+
+- **Dependency audit.** `npm audit --omit=dev --audit-level=high` fails the build when a
+  production dependency has a high or critical vulnerability. Run the same command yourself.
+- **Dependabot.** `.github/dependabot.yml` opens weekly pull requests for npm packages and for
+  GitHub Actions.
+- **Package contents** (`tests/packageContents.test.js`). Runs `npm pack --dry-run` and fails if
+  the package holds anything outside the `files` list in `package.json`, or any `.env` file (other
+  than `.env.example`), database, log, key or `.enc` file.
+- **Docs drift** (`tests/docsDrift.test.js`). Every tool in `packs/manifest.json` must appear on a
+  tools page, every tool a page lists must exist, and the risk level on a page must match
+  `tools/security.js`. The docs live in the docs repository, so the test needs both repositories
+  side by side. Locally it looks for a folder named `agenv` next to `causly-server`, or you can
+  point it at the docs yourself:
+
+```bash
+CAUSLY_DOCS_DIR=../agenv/website/docs/server npx vitest run tests/docsDrift.test.js
+```
+
+  CI checks out the docs repository and sets `CAUSLY_REQUIRE_DOCS=1`, so the test fails instead of
+  being skipped when the docs are missing. When you change a tool or its risk level, change its
+  docs page in the same piece of work, and merge the docs change first or together with the code.
+- **Docs site links.** The docs site build fails on a broken page link or a broken anchor
+  (`onBrokenLinks` and `onBrokenAnchors` are `throw`). Run `npm run build` in `website/` before you
+  push docs.
 
 Please also test by hand before you merge a new or changed tool:
 
@@ -134,7 +163,7 @@ npm test
 
 Also write a test in `tests/`, and a docs page under `website/docs/server/tools/` with the tools
 table, setup, behavior and limits. Look at an existing page such as [Linear](./tools/linear.md)
-for the format.
+for the format. The docs drift test fails until the tools on the page match the manifest and their risk levels match `tools/security.js`.
 
 ## Pull requests
 
