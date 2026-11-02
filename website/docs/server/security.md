@@ -114,11 +114,12 @@ File and directory tools check every path before they touch it. Two kinds of loc
 | Linux | `/etc`, `/usr`, `/bin`, `/sbin`, `/lib`, `/lib32`, `/lib64`, `/boot`, `/dev`, `/proc`, `/sys` |
 
 **Credential folders: reading and writing are both refused**, so an agent cannot read or replace
-your keys. These are `~/.ssh`, `~/.aws`, `~/.config/gcloud` and the OS keychain folders:
+your keys. These are `~/.ssh`, `~/.aws`, `~/.config/gcloud`, `~/.kube`, `~/.gnupg`, `~/.azure`, Causly's own folder (`~/.causly` or `CAUSLY_HOME`, which holds your API keys and the secrets store, plus the file named by `CAUSLY_ENV_FILE` and the `.env` of a git checkout) and the OS keychain folders:
 `~/Library/Keychains` and `/Library/Keychains` on macOS, `~/.local/share/keyrings` on Linux, and on
 Windows the `Credentials`, `Protect` and `Vault` folders under `AppData\Roaming\Microsoft` and
-`AppData\Local\Microsoft`, plus `AppData\Roaming\gcloud`. This covers every user's home folder, not
-only yours.
+`AppData\Local\Microsoft`, plus `AppData\Roaming\gcloud` and `AppData\Roaming\gnupg`. This covers every user's home folder, not
+only yours. The `causly-server keys` and `setup` commands still manage Causly's own files; only the
+agent's file tools are blocked from them.
 
 How a path is checked:
 
