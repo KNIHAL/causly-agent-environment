@@ -58,7 +58,7 @@ File and folder tools check every path, including both ends of `copy_file` and `
 | `git_status` | `READ` | Working tree status |
 | `git_add` | `LOW` | Stage files |
 | `git_commit` | `MEDIUM` | Commit staged changes |
-| `git_push` | `MEDIUM` | Push commits to a remote |
+| `git_push` | `HIGH` | Push commits to a remote. Visible to others and hard to undo, so it needs `confirm: true` |
 | `git_pull` | `MEDIUM` | Pull from a remote |
 | `git_log` | `READ` | Recent commit history |
 | `git_diff` | `READ` | Uncommitted changes, optionally for one file |
@@ -66,12 +66,12 @@ File and folder tools check every path, including both ends of `copy_file` and `
 | `git_branch` | `READ` | List local branches and show the current one |
 | `git_create_branch` | `LOW` | Create a branch, optionally checking it out |
 | `git_checkout` | `MEDIUM` | Check out an existing branch |
-| `git_merge` | `MEDIUM` | Merge a branch into the current one |
+| `git_merge` | `HIGH` | Merge a branch into the current one. Changes the working branch, so it needs `confirm: true` |
 | `git_reset` | `HIGH` | Reset the current branch to a ref. Needs `confirm: true` |
-| `git_stash` | `LOW` | Stash working changes |
+| `git_stash` | `MEDIUM` | Stash working changes. Only `action: "drop"` needs `confirm: true` |
 | `git_show` | `READ` | Details of a commit or object |
 | `git_remote` | `MEDIUM` | Manage and inspect remotes |
-| `git_tag` | `LOW` | Manage tags |
+| `git_tag` | `MEDIUM` | Manage tags. Only `action: "delete"` needs `confirm: true` |
 | `git_changed_files` | `READ` | Changed files with their change type |
 | `git_check_clean` | `READ` | Whether the working tree is clean |
 

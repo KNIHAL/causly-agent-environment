@@ -32,11 +32,11 @@ Every tool has one of five levels.
 |---|---|---|
 | `READ` | No side effects | `read_file`, `git_status`, `github_list_issues`, `calendar_list_events` |
 | `LOW` | Normal work, small and easy to undo | `git_add`, `create_directory`, `pipeline_add_lead`, `reminder_create` |
-| `MEDIUM` | Changes files or project state | `write_file`, `edit_file`, `git_commit`, `git_push`, `calendar_create_event` |
-| `HIGH` | Hard to undo or visible to others | `run_command`, `github_merge_pull_request`, `vercel_create_deployment`, `slack_send_message`, `gmail_send`, `terraform_apply`, `ship_change`, `deploy_project` |
+| `MEDIUM` | Changes files or project state | `write_file`, `edit_file`, `git_commit`, `git_checkout`, `calendar_create_event` |
+| `HIGH` | Hard to undo or visible to others | `run_command`, `git_push`, `git_merge`, `secrets_get`, `github_merge_pull_request`, `vercel_create_deployment`, `slack_send_message`, `gmail_send`, `terraform_apply`, `ship_change`, `deploy_project` |
 | `DESTRUCTIVE` | Deletes or cannot be reversed | `delete_file`, `delete_directory`, `terraform_destroy`, `docker_remove`, `calendar_delete_event`, `meeting_delete` |
 
-A tool that is not in the table defaults to `MEDIUM`.
+A tool without an explicit level defaults to `MEDIUM`. The test suite fails if a shipped tool has no level, so every released tool has its own.
 
 ### The approval gate
 
@@ -56,6 +56,10 @@ before making it. It is not a separate approval screen: an agent that decides to
 Some tools add their own confirmation on top of their level. For example, calendar tools require
 `confirm` when they would email guests, and `meeting_transcribe` requires it because it uploads
 audio to Groq.
+
+A few tools depend on the action. `git_stash` and `git_tag` are `MEDIUM`, but `git_stash` with
+`action: "drop"` and `git_tag` with `action: "delete"` are `HIGH` and need `confirm: true`. Their
+other actions run without it.
 
 ## Workspace limit
 
@@ -170,7 +174,7 @@ encrypted with AES-256-GCM, using a fresh random initialization vector, under a 
 you generate and keep in `SECRETS_MASTER_KEY`. Nothing is sent to an external vault. Without the
 master key, the store cannot be read, and it cannot be recovered if you lose it.
 
-`secrets_set` and `secrets_rotate_key` are `HIGH`, `secrets_get` is `MEDIUM`, and `secrets_delete`
+`secrets_set`, `secrets_get` and `secrets_rotate_key` are `HIGH` (`secrets_get` hands the decrypted value to the agent), and `secrets_delete`
 is `DESTRUCTIVE`.
 
 ## Activity log

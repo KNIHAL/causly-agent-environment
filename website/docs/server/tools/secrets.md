@@ -37,7 +37,7 @@ check follows symlinks to the real location. See [Protected paths](../security.m
 | Tool | Risk | What it does |
 |---|---|---|
 | `secrets_set` | HIGH | Store an encrypted secret by name |
-| `secrets_get` | MEDIUM | Retrieve and decrypt a secret by name |
+| `secrets_get` | HIGH | Retrieve and decrypt a secret by name. The value is returned to the agent, so it needs `confirm: true` |
 | `secrets_list` | READ | List secret names (never values) |
 | `secrets_delete` | DESTRUCTIVE | Delete a secret |
 | `secrets_rotate_key` | HIGH | Re-encrypt every secret under a new master key |

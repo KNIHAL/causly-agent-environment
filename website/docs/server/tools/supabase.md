@@ -25,7 +25,7 @@ broad scope.
 | `supabase_list_organizations` | READ | List organizations the authenticated account belongs to |
 | `supabase_list_projects` | READ | List Supabase projects for the authenticated account |
 | `supabase_get_project` | READ | Get details of a single project by its ref/ID |
-| `supabase_create_project` | MEDIUM | Create a new Supabase project |
+| `supabase_create_project` | HIGH | Create a new Supabase project. Creates a billable resource, so it needs `confirm: true` |
 | `supabase_delete_project` | DESTRUCTIVE | Delete a Supabase project |
 | `supabase_run_sql` | HIGH | Run raw SQL against a project's database — creating tables, altering schema, or querying data directly |
 
