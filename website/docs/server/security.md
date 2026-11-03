@@ -61,6 +61,14 @@ A few tools depend on the action. `git_stash` and `git_tag` are `MEDIUM`, but `g
 `action: "drop"` and `git_tag` with `action: "delete"` are `HIGH` and need `confirm: true`. Their
 other actions run without it.
 
+### Tool annotations
+
+Each tool also carries the MCP annotations `readOnlyHint`, `destructiveHint`, `idempotentHint` and
+`openWorldHint`, derived from its permission level (see [How it works](./architecture.md#tool-annotations)).
+They help a client decide how to present a tool, for example to ask before running a destructive one.
+They are hints only. A client may ignore them, and nothing in Causly Server relies on them: the
+approval gate above is what blocks a `HIGH` or `DESTRUCTIVE` call without `confirm: true`.
+
 ## Workspace limit
 
 By default, file tools can reach any folder your user can. Turn on the workspace limit to confine
@@ -220,6 +228,8 @@ Be clear about the limits of these controls.
   environment variables as the server, which includes the keys loaded from your settings file.
   Only run Causly Server with an agent you trust, and use scoped, revocable keys.
 - **The approval gate is a flag, not a screen.** See [above](#the-approval-gate).
+- **Annotations are hints.** A client that ignores them loses nothing in safety, because the gate is
+  enforced by the server. See [Tool annotations](#tool-annotations).
 - **Anything the agent reads can influence it.** Web pages, emails, issues and calendar entries
   are untrusted text. Prompt injection through them is a risk for any agent with tools. Prefer
   read-only keys where you can, and keep `confirm` decisions with you.

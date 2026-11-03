@@ -63,6 +63,8 @@ causly-server doctor --test   # also tests every configured key live
 |---|---|
 | `restore` cannot replace the data file | Quit Claude Desktop, Cursor and anything else that uses Causly Server, then run it again |
 | Pipeline or meetings say the database is locked | Update to the latest version: `npm update -g causly-server`. Version 1.5.2 fixed this |
+| The error says the local database is not a valid SQLite file | The file is damaged. Quit anything that uses Causly Server, then restore a backup with `causly-server restore <backup-file>`, or move `~/.causly/causly.db` aside to start fresh |
+| `init` said your editor's config file was not valid JSON | Causly kept a copy next to it (`<file>.backup-<time>`) and wrote a new file. Copy your other servers from the backup back into the new file |
 | I want to start fresh | Run `causly-server backup` first, then delete `~/.causly/causly.db` |
 
 ## Service-specific issues

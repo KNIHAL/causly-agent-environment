@@ -33,7 +33,9 @@ approval gate for `HIGH` and `DESTRUCTIVE` tools, and the activity log.
 | `get_file_info` | `READ` | Size, type, and created and modified times |
 
 `edit_file` needs the old text to match exactly, and to be unique unless `replace_all` is set. It
-is the cheapest way to change a large file.
+is the cheapest way to change a large file. In a file with Windows (CRLF) line endings, text that
+spans several lines matches whichever line ending you type, and the file keeps its own line
+endings after the edit.
 
 ## Directories
 

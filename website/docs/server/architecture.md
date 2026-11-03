@@ -56,6 +56,22 @@ Every tool, in every pack, is wrapped by the same pipeline:
 A call that fails step 2 or 3 never reaches the tool. It returns a `Blocked:` message that says
 why. See [Security](./security.md) for the details of each check.
 
+## Tool annotations
+
+Every tool also tells the client how risky it is, using the four MCP annotations: `readOnlyHint`,
+`destructiveHint`, `idempotentHint` and `openWorldHint`. They are worked out in one place
+(`tools/annotations.js`) from the tool's permission level:
+
+- `READ` tools are read-only and never marked destructive.
+- `DESTRUCTIVE` tools, tools with destructive actions (`git_stash` drop, `git_tag` delete) and
+  tools that overwrite existing state are marked destructive.
+- Tools that talk to a service outside your machine (GitHub, Slack, a database, `http_check`,
+  `git_push` and so on) are marked open-world.
+- `use_tool` is never marked read-only, because it can call any tool.
+
+Clients and directories use the hints to decide how to show and approve a tool. They are hints,
+not enforcement: see [Security](./security.md#tool-annotations).
+
 ## Tool packs and lazy loading
 
 Tools are grouped into packs, one per integration or feature, for example `github`, `docker`,

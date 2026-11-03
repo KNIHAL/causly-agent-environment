@@ -37,6 +37,10 @@ Setup checks the token live and shows which account it belongs to. The variable 
 | `github_update_issue` | MEDIUM | Update an issue's title, body, state, or labels |
 | `github_add_comment` | LOW | Add a comment to an issue or pull request |
 
+`github_list_issues` takes `state` of `open` (the default), `closed` or `all`. GitHub's issues
+endpoint also returns pull requests, so they are left out, and later pages are read until
+`per_page` real issues are found (up to 1,000 items are scanned).
+
 ## Pull requests
 
 | Tool | Risk | What it does |
