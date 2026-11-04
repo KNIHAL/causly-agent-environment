@@ -23,6 +23,7 @@ are not a sandbox.
 | [Secret redaction](#secret-redaction) | Tokens and passwords are removed before anything is logged |
 | [Encrypted secrets](#encrypted-secrets) | A local store, AES-256-GCM, with a key only you hold |
 | [Activity log](#activity-log) | A structured record of every tool call |
+| [Local file permissions](#local-file-permissions) | Causly's own files are readable only by you, and are written so a crash cannot corrupt them |
 
 ## Permission levels
 
@@ -242,6 +243,28 @@ Every tool call, including blocked ones, appends one JSON line to `~/.causly/log
 
 `status` is `SUCCESS`, `ERROR` or `BLOCKED`. Inputs are redacted before they are written. Logging
 never interrupts a tool call: if writing the log fails, the call still completes.
+
+## Local file permissions
+
+The activity log, the local database, the secrets store, backups and your settings file can all
+hold sensitive data, so Causly keeps them for you alone.
+
+- **macOS and Linux.** `~/.causly` and its `logs` and `backups` folders are `0700`. The files in
+  them (`.env`, `causly.db` with its `-wal` and `-shm` files, the secrets store, `activity.log`,
+  backups) are `0600`. Files from older versions are tightened when the server starts. Only known
+  Causly files and folders are changed, symbolic links are skipped, and a folder you chose with
+  `CAUSLY_HOME` is left as it is if it already exists.
+- **Windows.** There is no useful `chmod`. Access comes from your profile folder, which other
+  users cannot open by default. `causly-server doctor` checks that the data folder is inside your
+  profile and warns when it is not, for example when `CAUSLY_HOME` points to a shared drive.
+- **Crash-safe writes.** The secrets store and the changes to your editors' config files are
+  written to a temporary file in the same folder and renamed over the original, so a crash or power
+  cut leaves the old file whole. A backup appears under its real name only when it is complete.
+- **Editor config backups.** The `<file>.backup-<timestamp>` copies that `init` and `remove` make
+  are owner-only, because other servers in the same file often hold tokens. The editor config
+  itself keeps the permissions it had, and a symlinked config stays a symlink.
+
+`doctor` shows the result under "Private data folder".
 
 ## Privacy
 

@@ -58,8 +58,9 @@ causly-server init [--client <list>] [--workspace <folder>] [--toolsets <list>] 
 What it does:
 
 - Writes the server entry into each editor's config file and keeps all other servers. An existing
-  file is first copied to `<file>.backup-<timestamp>`.
-- Creates `~/.causly/.env` if it does not exist.
+  file is first copied to `<file>.backup-<timestamp>`. The copy is owner-only, and the config
+  file is replaced safely (it keeps its permissions and is never left half written).
+- Creates `~/.causly/.env` if it does not exist, readable only by you on macOS and Linux.
 - Prints the `claude mcp add ...` command for Claude Code.
 - In an interactive terminal, asks whether to add API keys now.
 
@@ -95,6 +96,7 @@ Checks:
 | Settings file | No `.env` was found |
 | Integrations configured | Informational: lists services that have all their keys set |
 | ffmpeg | Informational: only needed for recordings over 25 MB |
+| Private data folder | Informational: warns when other users could open Causly's data folder (a folder that is not `0700` on macOS and Linux, or outside your profile on Windows) |
 | Workspace limit | Informational: shows whether file tools are limited to a folder |
 | Set up in | Informational: shows which editors have Causly Server |
 
@@ -183,7 +185,9 @@ causly-server restore <file> [--yes]
 ```
 
 `backup` saves your pipeline, meetings and reminders to a file. API keys are **not** included,
-they stay in the settings file.
+they stay in the settings file. The backup is readable only by you on macOS and Linux. It appears
+under its final name only when it is complete, so a crash never leaves a half-written backup. A
+restored data file is owner-only too.
 
 `restore` replaces your current data with the backup. A copy of the current data is kept and its
 path is printed. It asks for confirmation unless you pass `--yes`. Restart your editor afterwards

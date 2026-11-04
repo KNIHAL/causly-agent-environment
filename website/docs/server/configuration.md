@@ -57,6 +57,10 @@ the package never touches it:
 
 Run from a git checkout, logs and the secrets store stay in the repository folder.
 
+On macOS and Linux this folder is `0700` and the files in it are `0600`; on Windows access comes
+from your profile folder. Details and the Windows check are in
+[Security](./security.md#local-file-permissions).
+
 ## Services
 
 For each service, run `causly-server setup <service>` to be walked through it. The service id is
