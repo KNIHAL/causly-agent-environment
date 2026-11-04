@@ -24,8 +24,8 @@ fix, see [Troubleshooting](./troubleshooting.md).
 ## Platforms
 
 - **Node.js 22.13 or newer** is required.
-- **Windows** is tested by hand. **macOS and Linux** are covered by the automated test suite on
-  every change (CI runs on all three), but have had less hands-on use. Reports are welcome.
+- **Windows** is tested by hand. **macOS and Linux** run the full automated test suite on every
+  change (Ubuntu, macOS and Windows, on Node.js 22 and 24), but have had less hands-on use. Reports are welcome.
 - Docker tools fall back to `wsl docker` on Windows when Docker only exists inside WSL.
 - On Windows, commands run by `run_command` use the same Node.js as the server, so `npm install` with postinstall scripts works even when your editor starts the server with a stripped environment.
 
@@ -40,6 +40,7 @@ fix, see [Troubleshooting](./troubleshooting.md).
 - The **workspace limit is a guardrail, not a sandbox.** It checks path arguments. It does not
   inspect the text of shell commands or Docker mounts.
 - The **approval gate** is a flag the agent must pass, not a separate approval screen.
+- **Tool annotations are hints.** Each tool tells your client whether it is read-only, destructive, idempotent or reaches outside your machine. Clients decide how to use that. The server still enforces permission levels and the approval gate on its own.
 - Commands run with `run_command` inherit the server's environment, including your keys.
 - BoundaryAttest is a proof of concept. It covers three workflow tools and uses a key file you
   manage. It has no production key storage, rotation, revocation, KMS or HSM integration, or
