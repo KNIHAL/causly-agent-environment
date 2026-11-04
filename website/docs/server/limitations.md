@@ -37,8 +37,8 @@ fix, see [Troubleshooting](./troubleshooting.md).
 
 ## Safety
 
-- The **workspace limit is a guardrail, not a sandbox.** It checks path arguments. It does not
-  inspect the text of shell commands or Docker mounts.
+- The **workspace limit is a guardrail, not a sandbox.** It checks path arguments, Docker volumes,
+  Compose files and project resources. It does not inspect the text of shell commands.
 - The **approval gate** asks you through a prompt only when your client supports MCP elicitation. On other clients it is a flag the agent passes itself (`confirm: true`), not a separate approval screen. A client that answers prompts automatically gives no protection.
 - **Tool annotations are hints.** Each tool tells your client whether it is read-only, destructive, idempotent or reaches outside your machine. Clients decide how to use that. The server still enforces permission levels and the approval gate on its own.
 - Commands run with `run_command` inherit the server's environment, including your keys.

@@ -46,7 +46,10 @@ Every tool, in every pack, is wrapped by the same pipeline:
 
 1. **Reload settings** if `~/.causly/.env` changed, so new keys work without a restart.
 2. **Workspace check.** If a workspace limit is on, every path in the arguments must be inside it.
-3. **Approval check.** `HIGH` and `DESTRUCTIVE` tools must be called with `confirm: true`.
+   For `docker_run` and `docker_compose_up`, the Docker mounts must be inside it too.
+3. **Approval check.** `HIGH` and `DESTRUCTIVE` tools need your approval: a prompt in clients that
+   support it, otherwise `confirm: true`. Your [policy file](./security.md#policy-file) can allow,
+   ask or deny per tool.
 4. **Run the tool.**
 5. **Log it.** One redacted line is appended to the activity log, with success, error or blocked
    status and the duration.
@@ -130,6 +133,10 @@ The server exposes read-only project context that a client can attach to a conve
 
 `{path}` is the project folder, URL-encoded as a single segment, for example
 `causly://project/D%3A%5Cmy-app/health`.
+
+A resource read goes through the same [workspace limit](./security.md#workspace-limit) as a tool
+call. With a limit on, a project folder outside it is refused, and the attempt is written to the
+activity log as `BLOCKED`.
 
 ## MCP prompts
 

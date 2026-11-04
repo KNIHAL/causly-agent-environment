@@ -32,7 +32,7 @@ restart.
 
 | Variable | Default | Description |
 |---|---|---|
-| `CAUSLY_WORKSPACE` | Off | Limit file and path arguments to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |
+| `CAUSLY_WORKSPACE` | Off | Limit file and path arguments, Docker mounts and project resources to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |
 | `CAUSLY_TOOLSETS` | Set by `init` | Packs to load at startup, comma-separated, for example `research,pipeline,meetings`. `all` loads every pack. The core packs (`files`, `directory`, `command`, `project`) always load. Manage it with `causly-server toolsets` |
 | `CAUSLY_TIMEZONE` | Your computer's zone | IANA timezone name, for example `Asia/Kolkata`. Used for "today", "tomorrow" and working hours in calendar and reminder tools |
 | `CAUSLY_HOME` | `~/.causly` | Folder for your settings, logs, secrets store and local database |

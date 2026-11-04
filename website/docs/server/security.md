@@ -16,7 +16,7 @@ are not a sandbox.
 | Control | What it does |
 |---|---|
 | [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need your approval: a prompt in your client, or `confirm: true` where the client has no prompts |
-| [Workspace limit](#workspace-limit) | Restrict file and command tools to the folders you choose |
+| [Workspace limit](#workspace-limit) | Restrict file tools, Docker mounts and project resources to the folders you choose |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
 | [Protected paths](#protected-paths) | System folders cannot be changed, credential folders cannot be read or written |
 | [Network guard](#network-guard) | URL-fetching tools only reach public addresses |
@@ -135,7 +135,39 @@ Details:
 - Symbolic links are resolved first, so a link inside the workspace cannot point outside it.
 - New files are checked too: the nearest existing parent folder must be inside the workspace.
 - Path comparison is case-insensitive on Windows.
+- The `causly://project/...` [MCP resources](./architecture.md#mcp-resources) go through the same
+  check. A project folder outside the workspace is refused, and the attempt is written to the
+  activity log as `BLOCKED`.
 - `causly-server doctor` and `status` show whether a limit is on.
+
+### Docker mounts and Compose files
+
+A Docker volume is a string and a Compose file is a document, so neither is a path argument. With a
+workspace limit on, Causly checks them too:
+
+- **`docker_run`.** The host folder of every entry in `volumes` must be inside the workspace. All
+  the usual forms are read: `/host:/container`, `./rel:/container`, `~/x:/container`,
+  `D:\x:/container`, with or without options such as `:ro`. Named volumes
+  (`pgdata:/var/lib/postgresql`) and anonymous volumes have no host folder and always pass. A path
+  that uses a variable (`$HOME/x`) or `~user` cannot be resolved, so it is blocked.
+- **`docker_compose_up`.** Causly asks Docker for the project as it will really run
+  (`docker compose config`, so includes, overrides, variables and `COMPOSE_FILE` are already
+  applied) and checks the bind mounts (short and long syntax, and a Windows named pipe), named
+  volumes that are really a host folder (`driver_opts` with `o: bind` and a `device`), build
+  contexts (also `additional_contexts`), and the files of the secrets and configs a service uses.
+  Git URLs and other remote build contexts are not folders and pass. If Docker cannot read the
+  Compose file, the call is blocked, because its mounts cannot be verified.
+  `docker_compose_down` starts nothing and is not inspected.
+- **Windows with Docker in WSL.** `/mnt/d/...` and `/d/...` are read as `D:\...`. Any other Linux
+  path, such as `/etc` or `/var/run/docker.sock`, is not on one of your drives and is blocked.
+- **Names are not options.** The image, container and build-folder arguments of the Docker tools
+  cannot start with `-`. Otherwise an "image" of `--volume=/:/host` would add a mount that the check
+  never sees.
+
+```text
+Blocked: 'docker_run' volume "/etc:/host:ro" mounts host path "/etc", which is outside the
+allowed workspace (CAUSLY_WORKSPACE).
+```
 
 ## Command safety
 
@@ -282,9 +314,12 @@ runs: for example GitHub, Gmail, Telegram, or Groq for transcription. Two cases 
 
 Be clear about the limits of these controls.
 
-- **The workspace limit is a guardrail, not a sandbox.** It checks path arguments. It does not
-  inspect the text of a shell command or Docker volume mounts, so a command can still reach files
-  the limit would block for `read_file`.
+- **The workspace limit is a guardrail, not a sandbox.** It checks path arguments, Docker volumes,
+  Compose files and project resources. It does not inspect the text of a shell command, so a command
+  can still reach files the limit would block for `read_file`, or start a container with any mount.
+  Compose settings that give a container the host without a folder (`privileged`, `devices`,
+  `pid: host`, `network_mode: host`) are not checked, and neither is a named volume that was created
+  outside Causly with a host folder behind it.
 - **Commands inherit the server's environment.** A command run with `run_command` can see the same
   environment variables as the server, which includes the keys loaded from your settings file.
   Only run Causly Server with an agent you trust, and use scoped, revocable keys.

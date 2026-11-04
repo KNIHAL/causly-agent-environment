@@ -38,6 +38,23 @@ installed). Windows-style paths (`D:\...`) passed to `docker_build`, `docker_run
 | `docker_compose_up` | HIGH | `docker compose up` for a project directory |
 | `docker_compose_down` | HIGH | `docker compose down` for a project directory |
 
+## Workspace limit
+
+With [`CAUSLY_WORKSPACE`](../security.md#workspace-limit) set, Docker mounts must stay inside it:
+
+- `docker_run`: the host folder of every entry in `volumes` must be inside the workspace. Named and
+  anonymous volumes are fine. A path with a variable (`$HOME/x`) is blocked because it cannot be checked.
+- `docker_compose_up`: the Compose project, as `docker compose config` resolves it, may only use bind
+  mounts, host-backed volumes, build contexts and secret or config files inside the workspace. If the
+  file cannot be read, the call is blocked. This needs Docker Compose v2.
+- On Windows with Docker in WSL, `/mnt/d/...` is read as `D:\...`. Other Linux paths (`/etc`,
+  `/var/run/docker.sock`) are outside every Windows workspace.
+- The image, container, target and build-folder arguments cannot start with `-`, so a value cannot
+  be read as a Docker option.
+
+Without a workspace limit nothing changes. Shell commands run with `run_command` are not inspected.
+See [Security](../security.md#docker-mounts-and-compose-files) for the details and the limits.
+
 ## Example
 
 ```
