@@ -15,7 +15,7 @@ are not a sandbox.
 
 | Control | What it does |
 |---|---|
-| [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need `confirm: true` |
+| [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need your approval: a prompt in your client, or `confirm: true` where the client has no prompts |
 | [Workspace limit](#workspace-limit) | Restrict file and command tools to the folders you choose |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
 | [Protected paths](#protected-paths) | System folders cannot be changed, credential folders cannot be read or written |
@@ -40,18 +40,56 @@ A tool without an explicit level defaults to `MEDIUM`. The test suite fails if a
 
 ### The approval gate
 
-`READ`, `LOW` and `MEDIUM` tools run immediately. `HIGH` and `DESTRUCTIVE` tools are refused unless
-the call includes `confirm: true`:
+`READ`, `LOW` and `MEDIUM` tools run immediately. `HIGH` and `DESTRUCTIVE` tools need approval.
+How you give it depends on your client.
+
+**Client with prompts (MCP elicitation).** When the client says it supports elicitation, Causly
+asks you before the call runs. The prompt names the tool, its risk level and its arguments, with
+secrets removed. An answer of Allow runs the call. Decline, cancel, no answer within 120 seconds
+(change it with `CAUSLY_APPROVAL_TIMEOUT_MS`) or a failed prompt block it, and nothing runs. The
+agent cannot answer this prompt, so a `confirm: true` it passes does not count. This is a real
+operator check.
+
+**Client without prompts.** The call is refused unless it includes `confirm: true`:
 
 ```text
 Blocked: 'github_merge_pull_request' is a HIGH-risk action and requires explicit
 confirmation. Re-call with confirm: true to proceed.
 ```
 
-The gate forces the agent to make a conscious second call, and a well-behaved agent asks you
+This only forces the agent to make a conscious second call, and a well-behaved agent asks you
 before making it. It is not a separate approval screen: an agent that decides to pass
 `confirm: true` can do so. Treat it as a seatbelt. If you want a hard boundary, use the
 [workspace limit](#workspace-limit) and keep your keys scoped to what you are comfortable with.
+
+### Policy file
+
+To decide per tool or per risk level yourself, create `~/.causly/policy.json` (inside
+`CAUSLY_HOME` if you set it):
+
+```json
+{
+  "tools": { "git_push": "allow", "secrets_get": "deny" },
+  "levels": { "DESTRUCTIVE": "ask" }
+}
+```
+
+Each rule is `allow`, `ask` or `deny`.
+
+| Rule | Effect |
+|---|---|
+| `allow` | The tool runs with no prompt and no `confirm`, even if it is `HIGH` or `DESTRUCTIVE` |
+| `ask` | You are prompted, or on a client without prompts the call needs `confirm: true`. This is the default for `HIGH` and `DESTRUCTIVE` |
+| `deny` | The call is always blocked, even with `confirm: true` or an Allow answer |
+
+A rule for a tool beats a rule for its level. A tool with no rule follows the default: `READ`,
+`LOW` and `MEDIUM` run, `HIGH` and `DESTRUCTIVE` ask. `levels` takes `READ`, `LOW`, `MEDIUM`,
+`HIGH` and `DESTRUCTIVE`. Changes are picked up on the next call, with no restart.
+
+If the file cannot be read, is not valid JSON, or has a wrong value or level name, Causly fails
+closed: every `HIGH` and `DESTRUCTIVE` call is blocked, with a message that names the file, until
+you fix or remove it. The agent's file tools cannot read or change this file, because
+`~/.causly` is a [protected path](#protected-paths).
 
 Some tools add their own confirmation on top of their level. For example, calendar tools require
 `confirm` when they would email guests, and `meeting_transcribe` requires it because it uploads
@@ -227,7 +265,10 @@ Be clear about the limits of these controls.
 - **Commands inherit the server's environment.** A command run with `run_command` can see the same
   environment variables as the server, which includes the keys loaded from your settings file.
   Only run Causly Server with an agent you trust, and use scoped, revocable keys.
-- **The approval gate is a flag, not a screen.** See [above](#the-approval-gate).
+- **Without prompts, the approval gate is a flag.** On a client that does not support elicitation,
+  the agent can pass `confirm: true` itself. See [above](#the-approval-gate). With prompts, the
+  check is only as strong as your client: one that answers Allow automatically gives no protection.
+  Shell commands can also edit your policy file, so keep `run_command` on `ask`.
 - **Annotations are hints.** A client that ignores them loses nothing in safety, because the gate is
   enforced by the server. See [Tool annotations](#tool-annotations).
 - **Anything the agent reads can influence it.** Web pages, emails, issues and calendar entries

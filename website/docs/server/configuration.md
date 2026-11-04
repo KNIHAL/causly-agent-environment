@@ -41,6 +41,7 @@ restart.
 | `CAUSLY_REMINDER_NOTIFY` | On | Set to `off` to stop due reminders being sent to Telegram. They are still announced in the server log |
 | `CAUSLY_UPDATE_CHECK` | On | Set to `off` to stop `status` and `doctor` from checking the npm registry for a newer version |
 | `CAUSLY_SEARCH_PROVIDER` | Automatic | Force the `web_search` provider: `tavily` or `duckduckgo`. By default Tavily is used when `TAVILY_API_KEY` is set, otherwise DuckDuckGo. `tavily` without a key returns an error |
+| `CAUSLY_APPROVAL_TIMEOUT_MS` | `120000` | How long Causly waits for you to answer an approval prompt (clients with MCP elicitation). With no answer in time, the call is blocked. See [Security](./security.md#the-approval-gate) |
 | `CAUSLY_ALLOW_PRIVATE_HOSTS` | Off | `web_fetch`, `http_check` and the lead and SEO tools refuse private, loopback and link-local addresses. Set to `true` to allow them, for example to read a local dev server |
 
 ### Where data is stored
@@ -52,6 +53,7 @@ the package never touches it:
 - `causly.db`: SQLite database for the pipeline, meetings and reminders
 - the encrypted secrets store
 - `activity.log`: the structured log of every tool call
+- `policy.json`: optional. Your allow, ask and deny rules for tools. See [Security](./security.md#policy-file)
 
 Run from a git checkout, logs and the secrets store stay in the repository folder.
 
