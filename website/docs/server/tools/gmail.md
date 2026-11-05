@@ -44,6 +44,10 @@ the app in **Audience** to stop the expiry. See [Environment variables](../confi
 | `gmail_reply` | HIGH | Reply to an existing message in the same thread |
 | `gmail_forward` | HIGH | Forward an existing message to a new recipient |
 
+## Rate limits and errors
+
+Google limits how fast Gmail can be called. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services-github-gmail-calendar-slack-telegram). An expired Google sign-in gets its own message that points to `causly-server login google`.
+
 ## Example
 
 ```

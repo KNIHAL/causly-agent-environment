@@ -73,6 +73,10 @@ endpoint also returns pull requests, so they are left out, and later pages are r
 | `github_get_job_logs` | READ | Get the raw log text for a specific failed job |
 | `github_rerun_workflow` | MEDIUM | Re-run a workflow run |
 
+## Rate limits and errors
+
+GitHub allows a limited number of calls per hour per token. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services-github-gmail-calendar-slack-telegram). A 403 from GitHub can mean either a spent rate limit or a missing token permission; Causly tells them apart.
+
 ## Example
 
 ```

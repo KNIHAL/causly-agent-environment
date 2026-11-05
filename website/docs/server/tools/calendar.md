@@ -109,6 +109,10 @@ Claude calls `calendar_find_slots` with `attendees`, proposes a window, and afte
 Claude calls `calendar_update_event` with the new `start`. Moving only the start keeps the
 event's original length.
 
+## Rate limits and errors
+
+Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services-github-gmail-calendar-slack-telegram). A deleted event gives `That event was already deleted.`
+
 ## Known limitations
 
 - Updating an event that belongs to a recurring series changes only the event id you pass. It does

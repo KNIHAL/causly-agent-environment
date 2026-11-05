@@ -68,6 +68,22 @@ causly-server doctor --test   # also tests every configured key live
 | `init` said your editor's config file was not valid JSON | Causly kept a copy next to it (`<file>.backup-<time>`) and wrote a new file. Copy your other servers from the backup back into the new file |
 | I want to start fresh | Run `causly-server backup` first, then delete `~/.causly/causly.db` |
 
+## Errors from services (GitHub, Gmail, Calendar, Slack, Telegram)
+
+These five services give the same kinds of error messages, each with the fix in it. A message never contains a stack trace, the service's raw error page or your key.
+
+| The message says | What it means | Fix |
+|---|---|---|
+| `rejected the credentials (401)` | The key is wrong, expired or revoked | Run the command in the message: `causly-server setup <service>`, or `causly-server login google` for Gmail and Calendar |
+| `refused the request (403)` | The key is missing a permission (scope), or the account cannot do this | The message names what is missing. Slack names the scope (for example `channels:history`): add it, reinstall the app, copy the new token. Gmail and Calendar need the API enabled and the scopes granted: `causly-server login google` |
+| `could not find that (404)` | The id or name is wrong, or the item is private | Check the ids. For a private repository or channel, the key must be able to see it |
+| `rate limit reached ... Try again in Ns` | The service is limiting you | Wait that long. Causly does not retry by itself, so the agent should wait, or do less per minute |
+| `is having problems (HTTP 5xx)` | The service itself is failing | Wait a little and try again. Check the service's status page if it lasts |
+| `did not answer within 20s` | The request timed out | Try again. If it keeps happening, check your connection or a proxy |
+| `Could not reach <service> (ECONNRESET)` | The network call failed (the code in brackets is the reason) | Check your internet connection, VPN or proxy |
+| `sent a reply that could not be read` | The service (or a proxy in between) answered with something that is not valid JSON | Usually temporary. Try again; check for a captive portal or proxy |
+| `Gmail refresh token is expired or revoked` | The Google sign-in expired (7 days in Testing mode) | `causly-server login google`. Publish your Google app to stop it expiring |
+
 ## Service-specific issues
 
 | Service | Problem | Fix |
