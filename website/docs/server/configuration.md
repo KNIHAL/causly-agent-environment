@@ -35,7 +35,7 @@ restart.
 | `CAUSLY_MAX_READ_BYTES` | `2097152` (2 MB) | Most bytes `read_file` and `read_multiple_files` return per file. A longer file is cut and marked `truncated: true` |
 | `CAUSLY_MAX_BATCH_BYTES` | `8388608` (8 MB) | Most bytes one `read_multiple_files` call returns in total. Files past it are skipped and marked |
 | `CAUSLY_MAX_LIST_ENTRIES` | `2000` | Most entries `list_directory` returns for one folder |
-| `CAUSLY_MAX_TREE_ENTRIES` | `5000` | Most entries `directory_tree` returns in total |
+| `CAUSLY_MAX_TREE_ENTRIES` | `1000` | Most entries `directory_tree` returns in total |
 | `CAUSLY_MAX_SCAN_ENTRIES` | `100000` | Most entries `search_files` looks at before it stops |
 | `CAUSLY_MAX_DB_POOLS` | `8` | Most Postgres and MySQL connection pools kept open. The least recently used is closed first |
 | `CAUSLY_DB_POOL_IDLE_MS` | `300000` (5 min) | A database pool unused this long is closed |

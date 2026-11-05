@@ -42,7 +42,7 @@ endings after the edit.
 | Tool | Level | What it does |
 |---|---|---|
 | `list_directory` | `READ` | List the files and folders directly inside a folder. Shows the first 2000 entries and marks a larger folder `truncated` |
-| `directory_tree` | `READ` | A recursive tree view. Skips `node_modules` and `.git`. `max_depth` defaults to 5 and is capped at 20. Stops after 5000 entries |
+| `directory_tree` | `READ` | A recursive tree view. Does not walk dependency and build folders (`node_modules`, `.git`, `build`, `dist`, `.next`, `.docusaurus`, `.venv`, `venv`, `__pycache__`, `.turbo`, `coverage`); their names appear under `skipped`, and `include_ignored: true` walks them. `max_depth` defaults to 3 and is capped at 20. Stops after 1000 entries |
 | `create_directory` | `LOW` | Create a folder, including missing parents |
 | `delete_directory` | `DESTRUCTIVE` | Delete a folder, recursively by default. Needs `confirm: true` |
 | `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive. Stops at `max_results` (up to 1000) or after 100,000 entries looked at |
@@ -116,7 +116,7 @@ client can attach to a conversation.
 | `timeout_ms` | Default 60,000 (one minute) |
 | `confirm` | Must be `true` |
 
-Output is capped at 20,000 characters. On Windows, commands run through PowerShell, not
+The result holds only `stdout`, `stderr` and `exit_code` (plus `timed_out` after a timeout, and a `risk` note when the command was flagged). It does not repeat the command or folder you sent. Output is capped at 20,000 characters. On Windows, commands run through PowerShell, not
 `cmd.exe`, so PowerShell syntax works. Catastrophic commands are blocked and risky ones are
 flagged. See [Command safety](../security.md#command-safety).
 

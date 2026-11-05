@@ -87,6 +87,8 @@ integrations cost nothing at startup and add nothing to your agent's context.
 | **Startup** | Whatever `CAUSLY_TOOLSETS` lists. `init` sets `research`, `leads`, `seo`, `pipeline`, `reminders`, `meetings` | At startup |
 | **On demand** | Every other pack | When your agent loads them |
 
+What it costs your agent's context: a session with only the core packs lists 25 tools (core packs plus the router tools), about 14 KB of JSON, roughly 3,600 tokens. Loading every pack lists 248 tools, about 145 KB, roughly 36,000 tokens, which is why packs load on demand. Measured with `node scripts/measure-tools-list.mjs` (tokens estimated as bytes / 4).
+
 `CAUSLY_TOOLSETS` accepts pack names separated by commas, or `all` to load everything. Manage it
 with [`causly-server toolsets`](./cli.md#toolsets). An unknown pack name is ignored and reported
 on stderr.

@@ -5,9 +5,9 @@ sidebar_label: Overview
 
 # Tools overview
 
-Causly Server has 231 tools in 26 packs. A pack is a group of tools for one integration or job.
+Causly Server has 245 tools in 28 packs. A pack is a group of tools for one integration or job.
 Packs load lazily, so your agent only carries the tools it needs. See
-[How it works](../architecture.md#tool-packs-and-lazy-loading).
+[How it works](../architecture.md#tool-packs-and-lazy-loading). The default set costs about 3,600 tokens of context; all packs together about 36,000.
 
 Every tool has a [risk level](../security.md#permission-levels). `HIGH` and `DESTRUCTIVE` tools
 need `confirm: true`.
