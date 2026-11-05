@@ -17,7 +17,7 @@ mysql://user:pass@host:3306/dbname
 ```
 
 Pass it directly as the `connection_string` argument on every call. Connections are pooled and
-reused per unique connection string within the server process. Connection strings, and any password inside them, are redacted before anything is logged or returned in an error message.
+reused per unique connection string within the server process. At most 8 pools are kept (the least recently used is closed first), and a pool idle for 5 minutes is closed. Connection strings, and any password inside them, are redacted before anything is logged or returned in an error message.
 
 ## Postgres
 

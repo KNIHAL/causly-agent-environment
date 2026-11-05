@@ -22,8 +22,8 @@ approval gate for `HIGH` and `DESTRUCTIVE` tools, and the activity log.
 
 | Tool | Level | What it does |
 |---|---|---|
-| `read_file` | `READ` | Read the full text of one file |
-| `read_multiple_files` | `READ` | Read several files in one call. A failure on one file does not stop the others |
+| `read_file` | `READ` | Read the text of one file, up to 2 MB. A longer file is cut and marked `truncated` |
+| `read_multiple_files` | `READ` | Read several files in one call, up to 2 MB each and 8 MB in total. A failure on one file does not stop the others. Files past the budget are skipped and marked |
 | `create_file` | `MEDIUM` | Create a new file |
 | `write_file` | `MEDIUM` | Create a file or completely overwrite it, creating parent folders as needed |
 | `edit_file` | `MEDIUM` | Replace an exact piece of text without rewriting the whole file |
@@ -41,11 +41,11 @@ endings after the edit.
 
 | Tool | Level | What it does |
 |---|---|---|
-| `list_directory` | `READ` | List the files and folders directly inside a folder |
-| `directory_tree` | `READ` | A recursive tree view. Skips `node_modules` and `.git`. `max_depth` defaults to 5 |
+| `list_directory` | `READ` | List the files and folders directly inside a folder. Shows the first 2000 entries and marks a larger folder `truncated` |
+| `directory_tree` | `READ` | A recursive tree view. Skips `node_modules` and `.git`. `max_depth` defaults to 5 and is capped at 20. Stops after 5000 entries |
 | `create_directory` | `LOW` | Create a folder, including missing parents |
 | `delete_directory` | `DESTRUCTIVE` | Delete a folder, recursively by default. Needs `confirm: true` |
-| `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive |
+| `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive. Stops at `max_results` (up to 1000) or after 100,000 entries looked at |
 
 File and folder tools check every path, including both ends of `copy_file` and `move_file`: they refuse to change system folders on Windows, macOS and Linux, and refuse to read or write credential folders such as `~/.ssh`. See
 [Protected paths](../security.md#protected-paths).

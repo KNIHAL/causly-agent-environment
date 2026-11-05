@@ -32,6 +32,13 @@ restart.
 
 | Variable | Default | Description |
 |---|---|---|
+| `CAUSLY_MAX_READ_BYTES` | `2097152` (2 MB) | Most bytes `read_file` and `read_multiple_files` return per file. A longer file is cut and marked `truncated: true` |
+| `CAUSLY_MAX_BATCH_BYTES` | `8388608` (8 MB) | Most bytes one `read_multiple_files` call returns in total. Files past it are skipped and marked |
+| `CAUSLY_MAX_LIST_ENTRIES` | `2000` | Most entries `list_directory` returns for one folder |
+| `CAUSLY_MAX_TREE_ENTRIES` | `5000` | Most entries `directory_tree` returns in total |
+| `CAUSLY_MAX_SCAN_ENTRIES` | `100000` | Most entries `search_files` looks at before it stops |
+| `CAUSLY_MAX_DB_POOLS` | `8` | Most Postgres and MySQL connection pools kept open. The least recently used is closed first |
+| `CAUSLY_DB_POOL_IDLE_MS` | `300000` (5 min) | A database pool unused this long is closed |
 | `CAUSLY_STRICT_PROJECT_COMMANDS` | Off | Set to `true` to make `run_tests`, `run_lint`, `run_typecheck` and `run_build` `HIGH` risk, so each call needs approval. See [Security](./security.md#project-commands) |
 | `CAUSLY_PASSTHROUGH_ENV` | Empty | Extra variable names passed to commands and other child processes, which otherwise get a minimal environment. Comma-separated; `PREFIX*` matches by prefix; `*` passes everything (the pre-1.6 behavior). Example: `AWS_PROFILE,AWS_REGION,TF_VAR_*`. See [Security](./security.md#child-process-environment) |
 | `CAUSLY_WORKSPACE` | Off | Limit file and path arguments, Docker mounts and project resources to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |

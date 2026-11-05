@@ -41,6 +41,7 @@ fix, see [Troubleshooting](./troubleshooting.md).
   Compose files and project resources. It does not inspect the text of shell commands.
 - The **approval gate** asks you through a prompt only when your client supports MCP elicitation. On other clients it is a flag the agent passes itself (`confirm: true`), not a separate approval screen. A client that answers prompts automatically gives no protection.
 - **Tool annotations are hints.** Each tool tells your client whether it is read-only, destructive, idempotent or reaches outside your machine. Clients decide how to use that. The server still enforces permission levels and the approval gate on its own.
+- Output and resource limits: a file read is cut at 2 MB (8 MB per `read_multiple_files` call), `list_directory` shows 2000 entries, `directory_tree` 5000 and `search_files` looks at 100,000. Anything cut says `truncated: true`. Change them with the `CAUSLY_MAX_*` variables in [Environment variables](./configuration.md).
 - Commands run with a minimal environment: your keys are not passed unless listed in `CAUSLY_PASSTHROUGH_ENV`. They can still read files your user can read, such as `.env` files.
 - BoundaryAttest is a proof of concept. It covers three workflow tools and uses a key file you
   manage. It has no production key storage, rotation, revocation, KMS or HSM integration, or
