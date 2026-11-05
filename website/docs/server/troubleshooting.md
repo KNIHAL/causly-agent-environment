@@ -28,6 +28,7 @@ causly-server doctor --test   # also tests every configured key live
 | The agent cannot see a tool | The tool's pack is not loaded. Ask the agent to call it with `use_tool`, or run `causly-server toolsets add <pack>`. See [How it works](./architecture.md#finding-and-calling-tools) |
 | `Blocked: ... requires explicit confirmation` | The tool is `HIGH` or `DESTRUCTIVE`. The agent must call it again with `confirm: true`. Check that you are happy with the action first. See [Permission levels](./security.md#permission-levels) |
 | `Blocked: ... is outside the allowed workspace` | A workspace limit is on. Check `causly-server doctor`, or run `causly-server init --workspace <folder>` with the folder you need |
+| A command cannot see a key or variable (`undefined`, "not logged in") | Commands get a minimal environment. Add the name to `CAUSLY_PASSTHROUGH_ENV` in your editor's MCP config `env` block (for example `AWS_PROFILE,AWS_REGION` or `TF_VAR_*`), then restart the editor. See [Child process environment](./security.md#child-process-environment) |
 | A tool says a key is missing | The error includes the fix, for example `causly-server setup github`. Run it in a terminal |
 | A key change had no effect | Check that the variable is not also set in your editor's MCP config or your terminal, which take priority. `causly-server keys set` warns you when that happens |
 

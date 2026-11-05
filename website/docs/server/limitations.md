@@ -41,7 +41,7 @@ fix, see [Troubleshooting](./troubleshooting.md).
   Compose files and project resources. It does not inspect the text of shell commands.
 - The **approval gate** asks you through a prompt only when your client supports MCP elicitation. On other clients it is a flag the agent passes itself (`confirm: true`), not a separate approval screen. A client that answers prompts automatically gives no protection.
 - **Tool annotations are hints.** Each tool tells your client whether it is read-only, destructive, idempotent or reaches outside your machine. Clients decide how to use that. The server still enforces permission levels and the approval gate on its own.
-- Commands run with `run_command` inherit the server's environment, including your keys.
+- Commands run with a minimal environment: your keys are not passed unless listed in `CAUSLY_PASSTHROUGH_ENV`. They can still read files your user can read, such as `.env` files.
 - BoundaryAttest is a proof of concept. It covers three workflow tools and uses a key file you
   manage. It has no production key storage, rotation, revocation, KMS or HSM integration, or
   trust registry. See [BoundaryAttest](./tools/boundaryattest.md).

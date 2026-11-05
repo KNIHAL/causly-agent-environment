@@ -97,6 +97,7 @@ Checks:
 | Integrations configured | Informational: lists services that have all their keys set |
 | ffmpeg | Informational: only needed for recordings over 25 MB |
 | Private data folder | Informational: warns when other users could open Causly's data folder (a folder that is not `0700` on macOS and Linux, or outside your profile on Windows) |
+| Child process env | Informational: shows whether commands get a minimal environment, extra passthrough names, or the full environment (`*`) |
 | Workspace limit | Informational: shows whether file tools are limited to a folder |
 | Set up in | Informational: shows which editors have Causly Server |
 

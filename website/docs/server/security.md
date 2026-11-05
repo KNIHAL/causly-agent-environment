@@ -17,6 +17,7 @@ are not a sandbox.
 |---|---|
 | [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need your approval: a prompt in your client, or `confirm: true` where the client has no prompts |
 | [Workspace limit](#workspace-limit) | Restrict file tools, Docker mounts and project resources to the folders you choose |
+| [Child process environment](#child-process-environment) | Commands get a minimal environment, so your keys stay out unless you allow them |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
 | [Protected paths](#protected-paths) | System folders cannot be changed, credential folders cannot be read or written |
 | [Network guard](#network-guard) | URL-fetching tools only reach public addresses |
@@ -298,6 +299,27 @@ hold sensitive data, so Causly keeps them for you alone.
 
 `doctor` shows the result under "Private data folder".
 
+## Child process environment
+
+Commands and tools that start other programs (`run_command`, project commands, Docker, Terraform,
+git, ffmpeg) get a small allowlist of variables instead of everything the server holds. That keeps
+the keys loaded from your settings file (GitHub, OpenAI, cloud credentials and so on) out of
+commands the agent runs.
+
+What each child gets:
+
+- **Always:** `PATH`, home and user variables, locale (`LANG`, `LC_*`), temp folders, the Windows
+  system variables, proxy and CA-certificate settings.
+- **Docker:** also `DOCKER_*` connection settings and `COMPOSE_*`.
+- **Terraform:** also `TF_LOG`, `TF_DATA_DIR`, `TF_CLI_CONFIG_FILE`, `TF_IN_AUTOMATION`, `TF_INPUT`.
+  Cloud credentials, `TF_VAR_*` and `TF_TOKEN_*` are not included.
+- **Git:** also `SSH_AUTH_SOCK`. `GIT_*` variables are never passed.
+
+If a command needs a variable, name it in `CAUSLY_PASSTHROUGH_ENV` (comma-separated; `PREFIX*`
+matches by prefix; `*` restores the old behavior of passing everything). See
+[Environment variables](./configuration.md). `doctor` shows the current mode under "Child process
+env".
+
 ## Privacy
 
 Causly Server has no Causly cloud and no Causly account. Your keys are in `~/.causly/.env` and
@@ -320,9 +342,10 @@ Be clear about the limits of these controls.
   Compose settings that give a container the host without a folder (`privileged`, `devices`,
   `pid: host`, `network_mode: host`) are not checked, and neither is a named volume that was created
   outside Causly with a host folder behind it.
-- **Commands inherit the server's environment.** A command run with `run_command` can see the same
-  environment variables as the server, which includes the keys loaded from your settings file.
-  Only run Causly Server with an agent you trust, and use scoped, revocable keys.
+- **Commands get a minimal environment, not a sandbox.** Child processes no longer inherit your
+  keys by default (see [Child process environment](#child-process-environment)). A command can
+  still read any file your user can, including `.env` files and `~/.aws`. Use scoped, revocable
+  keys and an agent you trust.
 - **Without prompts, the approval gate is a flag.** On a client that does not support elicitation,
   the agent can pass `confirm: true` itself. See [above](#the-approval-gate). With prompts, the
   check is only as strong as your client: one that answers Allow automatically gives no protection.
