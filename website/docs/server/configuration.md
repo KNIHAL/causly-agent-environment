@@ -32,6 +32,7 @@ restart.
 
 | Variable | Default | Description |
 |---|---|---|
+| `CAUSLY_STRICT_PROJECT_COMMANDS` | Off | Set to `true` to make `run_tests`, `run_lint`, `run_typecheck` and `run_build` `HIGH` risk, so each call needs approval. See [Security](./security.md#project-commands) |
 | `CAUSLY_PASSTHROUGH_ENV` | Empty | Extra variable names passed to commands and other child processes, which otherwise get a minimal environment. Comma-separated; `PREFIX*` matches by prefix; `*` passes everything (the pre-1.6 behavior). Example: `AWS_PROFILE,AWS_REGION,TF_VAR_*`. See [Security](./security.md#child-process-environment) |
 | `CAUSLY_WORKSPACE` | Off | Limit file and path arguments, Docker mounts and project resources to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |
 | `CAUSLY_TOOLSETS` | Set by `init` | Packs to load at startup, comma-separated, for example `research,pipeline,meetings`. `all` loads every pack. The core packs (`files`, `directory`, `command`, `project`) always load. Manage it with `causly-server toolsets` |

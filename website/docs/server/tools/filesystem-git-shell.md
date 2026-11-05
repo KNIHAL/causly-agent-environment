@@ -95,6 +95,12 @@ does not have to guess whether to run `npm test`, `pytest` or `cargo test`.
 | `run_typecheck` | `LOW` | Detect and run the typecheck command |
 | `run_build` | `LOW` | Detect and run the build command |
 
+`run_tests`, `run_lint`, `run_typecheck` and `run_build` run the project's own scripts (for example
+`npm test` from `package.json`). A project you did not write can run anything in those scripts, so
+treat an unfamiliar repository like untrusted code. They are `LOW` by default. Set
+`CAUSLY_STRICT_PROJECT_COMMANDS=true` to make them `HIGH`: each call then needs your approval, or
+`confirm: true` on clients without prompts. See [Security](../security.md#project-commands).
+
 The same information is available as [MCP resources](../architecture.md#mcp-resources), which a
 client can attach to a conversation.
 

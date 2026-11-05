@@ -17,6 +17,7 @@ are not a sandbox.
 |---|---|
 | [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need your approval: a prompt in your client, or `confirm: true` where the client has no prompts |
 | [Workspace limit](#workspace-limit) | Restrict file tools, Docker mounts and project resources to the folders you choose |
+| [Project commands](#project-commands) | `run_tests`, `run_build` and friends run the project's scripts; turn on strict mode to approve each call |
 | [Child process environment](#child-process-environment) | Commands get a minimal environment, so your keys stay out unless you allow them |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
 | [Protected paths](#protected-paths) | System folders cannot be changed, credential folders cannot be read or written |
@@ -298,6 +299,18 @@ hold sensitive data, so Causly keeps them for you alone.
   itself keeps the permissions it had, and a symlinked config stays a symlink.
 
 `doctor` shows the result under "Private data folder".
+
+## Project commands
+
+`run_tests`, `run_lint`, `run_typecheck` and `run_build` run the scripts a project defines. That is
+the point of them, and it means a hostile `package.json` or `Makefile` can run any command with your
+permissions. They are `LOW` by default so everyday work is not interrupted.
+
+If you open projects you do not trust, set `CAUSLY_STRICT_PROJECT_COMMANDS=true` in your editor's MCP
+config `env` block. The four tools then count as `HIGH`, so every call needs your approval (or
+`confirm: true` on clients without prompts). You can still allow them per tool in
+[`policy.json`](#the-approval-gate). The [workspace limit](#workspace-limit) applies as before, and
+[commands get a minimal environment](#child-process-environment) either way.
 
 ## Child process environment
 
