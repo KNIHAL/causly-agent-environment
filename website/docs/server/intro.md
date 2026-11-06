@@ -61,7 +61,7 @@ Your agent talks to Causly Server over MCP on stdio. Inside the server:
    demand.
 4. **Local store.** SQLite for pipeline, meetings and reminders in `~/.causly`, an encrypted
    secrets store, and your API keys in `~/.causly/.env`.
-5. **Your services.** GitHub, Vercel, Docker, Terraform, Postgres, Slack, Notion, Linear, Gmail,
+5. **Your services.** GitHub, Vercel, Docker, Terraform, Postgres, Slack, Discord, Notion, Linear, Stripe, Gmail,
    Google Calendar, Telegram and more, reached with your own keys.
 
 See [Architecture](./architecture.md) for the full breakdown and [Security](./security.md) for the

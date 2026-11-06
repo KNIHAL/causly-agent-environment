@@ -83,6 +83,9 @@ the name in the first column.
 | `slack` | `SLACK_BOT_TOKEN` | Yes | Slack app, OAuth & Permissions. Bot scopes: `channels:read`, `channels:history`, `groups:read`, `groups:history`, `chat:write`, `users:read`. Searching messages needs a user token with `search:read` |
 | `notion` | `NOTION_API_KEY` | Yes | [notion.so/my-integrations](https://www.notion.so/my-integrations). Also share each page or database with the integration, or it stays invisible |
 | `linear` | `LINEAR_API_KEY` | Yes | Linear, Settings, Account, Security & access, Personal API keys |
+| `stripe` | `STRIPE_API_KEY` | Yes | [Stripe test API keys](https://dashboard.stripe.com/test/apikeys). Use a test key (`sk_test_...`) first. Live keys are refused unless `STRIPE_ALLOW_LIVE=true` |
+| `stripe` | `STRIPE_ALLOW_LIVE`, `STRIPE_DEFAULT_CURRENCY` | No | `true` allows live keys. The default currency is a 3-letter code such as `usd` (default `usd`) |
+| `discord` | `DISCORD_BOT_TOKEN` | Yes | [Discord Developer Portal](https://discord.com/developers/applications), Bot, Reset Token. Turn on Message Content Intent to read what others wrote |
 | `sentry` | `SENTRY_AUTH_TOKEN` | Yes | [Sentry auth tokens](https://sentry.io/settings/account/api/auth-tokens/) with `project:read` and `event:read`. Add `event:write` to resolve, ignore or comment on issues |
 | `telegram` | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Both | Create a bot with [@BotFather](https://t.me/BotFather), press Start on it, then find your chat id with `telegram_get_updates` |
 | `research` | `TAVILY_API_KEY` | No | [tavily.com](https://tavily.com), free tier. Gives better `web_search` results. Without it, Causly falls back to DuckDuckGo |

@@ -40,6 +40,12 @@ Three router tools are always available: `search_tools`, `load_toolset` and `use
 | [Supabase](./supabase.md) | 6 | Projects, organizations and SQL | `SUPABASE_ACCESS_TOKEN` |
 | [Database](./database.md) | 8 | Postgres and MySQL queries and schema inspection | A connection string per call |
 
+## Payments
+
+| Pack | Tools | What it does | Needs |
+|---|---|---|---|
+| [Stripe](./stripe.md) | 9 | Customers, draft and sent invoices, payment links, payments, refunds. Test keys first | `STRIPE_API_KEY` |
+
 ## Observability
 
 | Pack | Tools | What it does | Needs |
@@ -70,6 +76,7 @@ Three router tools are always available: `search_tools`, `load_toolset` and `use
 | Pack | Tools | What it does | Needs |
 |---|---|---|---|
 | [Slack](./slack.md) | 8 | Channels, messages and threads | `SLACK_BOT_TOKEN` |
+| [Discord](./discord.md) | 5 | Servers, channels, read and post messages as a bot | `DISCORD_BOT_TOKEN` |
 | [Gmail](./gmail.md) | 8 | Search, read, send, reply and forward | Google sign-in |
 | [Telegram](./telegram.md) | 5 | Alert yourself, read messages sent to your bot | `TELEGRAM_BOT_TOKEN` |
 
