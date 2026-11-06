@@ -39,6 +39,8 @@ restart.
 | `CAUSLY_MAX_SCAN_ENTRIES` | `100000` | Most entries `search_files` looks at before it stops |
 | `CAUSLY_MAX_DB_POOLS` | `8` | Most Postgres and MySQL connection pools kept open. The least recently used is closed first |
 | `CAUSLY_DB_POOL_IDLE_MS` | `300000` (5 min) | A database pool unused this long is closed |
+| `CAUSLY_LOG_MAX_BYTES` | `10485760` (10 MB) | `activity.log` is rotated when the next entry would take it past this size. See [Security](./security.md#activity-log) |
+| `CAUSLY_LOG_KEEP` | `5` | Rotated logs kept (`activity.log.1` to `.N`). The oldest is deleted at the next rotation |
 | `CAUSLY_STRICT_PROJECT_COMMANDS` | Off | Set to `true` to make `run_tests`, `run_lint`, `run_typecheck` and `run_build` `HIGH` risk, so each call needs approval. See [Security](./security.md#project-commands) |
 | `CAUSLY_PASSTHROUGH_ENV` | Empty | Extra variable names passed to commands and other child processes, which otherwise get a minimal environment. Comma-separated; `PREFIX*` matches by prefix; `*` passes everything (the pre-1.6 behavior). Example: `AWS_PROFILE,AWS_REGION,TF_VAR_*`. See [Security](./security.md#child-process-environment) |
 | `CAUSLY_WORKSPACE` | Off | Limit file and path arguments, Docker mounts and project resources to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |
@@ -61,7 +63,7 @@ the package never touches it:
 - `.env`: your keys and settings
 - `causly.db`: SQLite database for the pipeline, meetings and reminders
 - the encrypted secrets store
-- `activity.log`: the structured log of every tool call
+- `activity.log`: the structured log of every tool call. It rotates at 10 MB and keeps five older files (`activity.log.1` to `.5`)
 - `policy.json`: optional. Your allow, ask and deny rules for tools. See [Security](./security.md#policy-file)
 
 Run from a git checkout, logs and the secrets store stay in the repository folder.

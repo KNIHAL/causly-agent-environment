@@ -278,6 +278,19 @@ Every tool call, including blocked ones, appends one JSON line to `~/.causly/log
 `status` is `SUCCESS`, `ERROR` or `BLOCKED`. Inputs are redacted before they are written. Logging
 never interrupts a tool call: if writing the log fails, the call still completes.
 
+- **One call, one line.** Each entry is a single JSON object on a single line. Quotes, backslashes
+  and control characters (newlines, carriage returns, escape codes) inside a value are escaped, and
+  so are U+2028, U+2029 and U+0085, which some log viewers treat as line breaks. A tool input or an
+  error message that contains `\n{"tool":"read_file", ...}` cannot add a fake entry.
+- **Size cap per entry.** An entry over 16 KB (a huge `write_file` input, for example) is stored
+  with a short preview of the input and its original size, marked `truncated: true`, so one call
+  cannot fill the log.
+- **Rotation.** When the next line would take `activity.log` past 10 MB, it becomes
+  `activity.log.1`, the older files shift up (`.1` to `.2`, and so on), and a new `activity.log`
+  starts. Five rotated files are kept and the oldest is deleted. Change this with
+  `CAUSLY_LOG_MAX_BYTES` and `CAUSLY_LOG_KEEP` ([Configuration](./configuration.md)). Rotated
+  files get the same owner-only permissions as the log.
+
 ## Local file permissions
 
 The activity log, the local database, the secrets store, backups and your settings file can all

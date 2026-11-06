@@ -67,6 +67,8 @@ causly-server doctor --test   # also tests every configured key live
 | The error says the local database is not a valid SQLite file | The file is damaged. Quit anything that uses Causly Server, then restore a backup with `causly-server restore <backup-file>`, or move `~/.causly/causly.db` aside to start fresh |
 | `init` said your editor's config file was not valid JSON | Causly kept a copy next to it (`<file>.backup-<time>`) and wrote a new file. Copy your other servers from the backup back into the new file |
 | I want to start fresh | Run `causly-server backup` first, then delete `~/.causly/causly.db` |
+| `activity.log` is missing older calls | It rotates at 10 MB. Older entries are in `activity.log.1` (newest) to `activity.log.5`. Keep more or larger files with `CAUSLY_LOG_KEEP` and `CAUSLY_LOG_MAX_BYTES` |
+| A log entry says `"truncated": true` | That call's input was over 16 KB, so the log keeps a 1,000-character preview and the original size, not the whole input |
 
 ## Errors from services
 
