@@ -111,7 +111,7 @@ event's original length.
 
 ## Rate limits and errors
 
-Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services-github-gmail-calendar-slack-telegram). A deleted event gives `That event was already deleted.`
+Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services). A deleted event gives `That event was already deleted.`
 
 ## Known limitations
 

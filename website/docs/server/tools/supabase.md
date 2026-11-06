@@ -29,6 +29,10 @@ broad scope.
 | `supabase_delete_project` | DESTRUCTIVE | Delete a Supabase project |
 | `supabase_run_sql` | HIGH | Run raw SQL against a project's database — creating tables, altering schema, or querying data directly |
 
+## Rate limits and errors
+
+A 403 on supabase_run_sql can mean the access token does not allow raw SQL for that project. Causly does not retry failed calls on its own: a rate-limit error says how long to wait (`Try again in 12s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services).
+
 ## Example
 
 ```

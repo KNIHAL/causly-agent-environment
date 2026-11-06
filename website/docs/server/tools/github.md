@@ -75,7 +75,7 @@ endpoint also returns pull requests, so they are left out, and later pages are r
 
 ## Rate limits and errors
 
-GitHub allows a limited number of calls per hour per token. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services-github-gmail-calendar-slack-telegram). A 403 from GitHub can mean either a spent rate limit or a missing token permission; Causly tells them apart.
+GitHub allows a limited number of calls per hour per token. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services). A 403 from GitHub can mean either a spent rate limit or a missing token permission; Causly tells them apart.
 
 ## Example
 

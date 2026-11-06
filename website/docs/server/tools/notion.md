@@ -38,6 +38,10 @@ content that's been explicitly shared with the integration, even with a valid to
 | `notion_list_users` | READ | List all workspace users |
 | `notion_get_user` | READ | Get a single user's info |
 
+## Rate limits and errors
+
+Notion answers 429 with a wait time. A 404 usually means the page is not shared with your integration: open it, then ... > Connections. Causly does not retry failed calls on its own: a rate-limit error says how long to wait (`Try again in 12s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services).
+
 ## Example
 
 ```

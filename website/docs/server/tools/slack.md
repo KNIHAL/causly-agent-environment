@@ -39,7 +39,7 @@ the `limit` you request, so large workspaces don't silently get truncated to the
 
 ## Rate limits and errors
 
-Slack limits each method separately and answers with how long to wait. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services-github-gmail-calendar-slack-telegram). Slack reports most problems as an error code such as `missing_scope` or `channel_not_found`; Causly turns the common ones into the messages above, and names the scope that is missing.
+Slack limits each method separately and answers with how long to wait. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services). Slack reports most problems as an error code such as `missing_scope` or `channel_not_found`; Causly turns the common ones into the messages above, and names the scope that is missing.
 
 ## Example
 

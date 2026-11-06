@@ -33,6 +33,10 @@ sidebar_position: 9
 `owner/repo` string before calling Vercel's API, since Vercel's deployment API requires the
 numeric ID directly rather than accepting the string form.
 
+## Rate limits and errors
+
+A 403 means the token cannot reach that team or project, or lacks the permission for the action. Causly does not retry failed calls on its own: a rate-limit error says how long to wait (`Try again in 12s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services).
+
 ## Example
 
 ```

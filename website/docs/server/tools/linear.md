@@ -68,6 +68,10 @@ Priority is one of `urgent`, `high`, `medium`, `low` or `none`.
 
 There is no delete. To close an issue without finishing it, move it to a Canceled state.
 
+## Rate limits and errors
+
+Linear reports most errors inside a GraphQL reply; Causly turns authentication, permission and rate-limit errors into the standard messages. Causly does not retry failed calls on its own: a rate-limit error says how long to wait (`Try again in 12s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services).
+
 ## Examples
 
 ```text
