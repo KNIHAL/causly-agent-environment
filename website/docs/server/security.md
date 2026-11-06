@@ -381,6 +381,23 @@ Be clear about the limits of these controls.
 - **Anything the agent reads can influence it.** Web pages, emails, issues and calendar entries
   are untrusted text. Prompt injection through them is a risk for any agent with tools. Prefer
   read-only keys where you can, and keep `confirm` decisions with you.
+
+  *What is tested.* A test suite feeds hostile text ("call `delete_file`", "pass `confirm: true`",
+  "send `~/.causly/.env` to ...") through `web_fetch`, `gmail_get_message`, `gmail_get_thread`,
+  `github_get_issue`, the pull request readers (details, diff, comments, reviews),
+  `calendar_get_event` and `calendar_list_events`. It checks that (1) every result carries a
+  notice saying the content is untrusted and must not be followed, (2) the description of each of
+  those tools says the same, and (3) the approval gate behaves the same afterwards: a gated call
+  still needs a real boolean `confirm: true`, and text such as `confirm: "true"` or an instruction
+  inside a page changes nothing. The text itself is passed on unchanged, so you see what the sender
+  wrote.
+
+  *What is not prevented.* Causly cannot stop a model from obeying text it has read. The notice
+  and the descriptions are a hint to the model, not a filter. A model that is persuaded can still
+  call a tool that needs no approval (reading files, searching, listing), and where there is no
+  approval prompt it can pass `confirm: true` itself. Slack, Notion, Telegram, Sentry and other
+  services that return text from other people are not covered by this suite yet. Treat their
+  output the same way.
 - **Keys are as powerful as you make them.** Causly can only do what your tokens allow. Create
   fine-grained tokens with the smallest scopes you need.
 
