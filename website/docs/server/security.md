@@ -258,6 +258,14 @@ master key, the store cannot be read, and it cannot be recovered if you lose it.
 `secrets_set`, `secrets_get` and `secrets_rotate_key` are `HIGH` (`secrets_get` hands the decrypted value to the agent), and `secrets_delete`
 is `DESTRUCTIVE`.
 
+- **Strict master key.** `SECRETS_MASTER_KEY` and `SECRETS_MASTER_KEY_NEW` must be exactly 64 hex
+  characters. A key with anything extra or invalid is refused before the store is opened.
+- **Atomic writes.** A save or a rotation writes a temporary file and renames it over the store. A
+  crash, or a rotation that fails on one entry, leaves the previous store whole.
+- **Custom `store_path`.** It must be inside Causly's data folder or `CAUSLY_WORKSPACE`, and an
+  existing file must already be a secrets store. The tools cannot be pointed at another file to read
+  or overwrite it.
+
 ## Activity log
 
 Every tool call, including blocked ones, appends one JSON line to `~/.causly/logs/activity.log`:
