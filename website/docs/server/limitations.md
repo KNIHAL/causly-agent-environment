@@ -24,22 +24,31 @@ fix, see [Troubleshooting](./troubleshooting.md).
 ## Platforms
 
 - **Node.js 22.13 or newer** is required.
-- **Windows** is tested by hand. **macOS and Linux** are covered by the automated test suite on
-  every change (CI runs on all three), but have had less hands-on use. Reports are welcome.
+- **Windows** is tested by hand. **macOS and Linux** run the full automated test suite on every
+  change (Ubuntu, macOS and Windows, on Node.js 22 and 24), but have had less hands-on use. Reports are welcome.
 - Docker tools fall back to `wsl docker` on Windows when Docker only exists inside WSL.
+- On Windows, commands run by `run_command` use the same Node.js as the server, so `npm install` with postinstall scripts works even when your editor starts the server with a stripped environment.
 
 ## Google
 
 - While your Google app is in **Testing** status, Google expires the refresh token after 7 days.
-  Run `causly-server login google` to renew it, or publish the app to production.
+  `status` and `doctor` warn from day 5. Run `causly-server login google` to renew it, or
+  [publish the app to production](./tools/gmail.md#publish-your-google-app-stop-the-7-day-expiry).
+  That is a step in your own Google Cloud project that Causly cannot do for you, and Causly cannot
+  ask Google which status your app has: after publishing, set `CAUSLY_GOOGLE_PUBLISHED=true` to
+  stop the warnings.
+- The age warning only works for sign-ins saved by `login google`, `setup` or `keys set`. A token
+  you wrote into the settings file by hand has no saved date, so it gets no warning.
 - Gmail, Calendar and Search Console need a Google OAuth client that you create yourself.
 
 ## Safety
 
-- The **workspace limit is a guardrail, not a sandbox.** It checks path arguments. It does not
-  inspect the text of shell commands or Docker mounts.
-- The **approval gate** is a flag the agent must pass, not a separate approval screen.
-- Commands run with `run_command` inherit the server's environment, including your keys.
+- The **workspace limit is a guardrail, not a sandbox.** It checks path arguments, Docker volumes,
+  Compose files and project resources. It does not inspect the text of shell commands.
+- The **approval gate** asks you through a prompt only when your client supports MCP elicitation. On other clients it is a flag the agent passes itself (`confirm: true`), not a separate approval screen. A client that answers prompts automatically gives no protection.
+- **Tool annotations are hints.** Each tool tells your client whether it is read-only, destructive, idempotent or reaches outside your machine. Clients decide how to use that. The server still enforces permission levels and the approval gate on its own.
+- Output and resource limits: a file read is cut at 2 MB (8 MB per `read_multiple_files` call), `list_directory` shows 2000 entries, `directory_tree` 1000 and `search_files` looks at 100,000. Anything cut says `truncated: true`. Change them with the `CAUSLY_MAX_*` variables in [Environment variables](./configuration.md).
+- Commands run with a minimal environment: your keys are not passed unless listed in `CAUSLY_PASSTHROUGH_ENV`. They can still read files your user can read, such as `.env` files.
 - BoundaryAttest is a proof of concept. It covers three workflow tools and uses a key file you
   manage. It has no production key storage, rotation, revocation, KMS or HSM integration, or
   trust registry. See [BoundaryAttest](./tools/boundaryattest.md).
@@ -56,8 +65,6 @@ See [Security](./security.md#what-is-not-protected) for the full list.
   for your own site's real numbers.
 - **No outreach tools for LinkedIn, X or WhatsApp.** Email goes through [Gmail](./tools/gmail.md).
 - **Pipeline does not send messages.** It records what happened. Sending is a separate step.
-- **Recurring calendar events.** Updating one only changes the event id you pass, not the whole
-  series.
 - **No sync between machines.** Your pipeline, meetings and reminders are in one local database.
   Use [`backup`](./cli.md#backup-and-restore) to move or keep a copy.
 

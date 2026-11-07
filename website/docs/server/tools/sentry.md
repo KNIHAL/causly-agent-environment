@@ -39,6 +39,10 @@ don't need to configure anything for this.
 | `sentry_get_project_stats` | READ | Error-count trends over a time period |
 | `sentry_add_comment` | HIGH | Add a note to an issue |
 
+## Rate limits and errors
+
+Causly tries sentry.io and de.sentry.io. A 403 on resolve, ignore or comment means the token needs the event:write scope. Causly does not retry failed calls on its own: a rate-limit error says how long to wait (`Try again in 12s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services).
+
 ## Example
 
 ```

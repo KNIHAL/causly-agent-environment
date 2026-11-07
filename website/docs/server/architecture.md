@@ -46,7 +46,10 @@ Every tool, in every pack, is wrapped by the same pipeline:
 
 1. **Reload settings** if `~/.causly/.env` changed, so new keys work without a restart.
 2. **Workspace check.** If a workspace limit is on, every path in the arguments must be inside it.
-3. **Approval check.** `HIGH` and `DESTRUCTIVE` tools must be called with `confirm: true`.
+   For `docker_run` and `docker_compose_up`, the Docker mounts must be inside it too.
+3. **Approval check.** `HIGH` and `DESTRUCTIVE` tools need your approval: a prompt in clients that
+   support it, otherwise `confirm: true`. Your [policy file](./security.md#policy-file) can allow,
+   ask or deny per tool.
 4. **Run the tool.**
 5. **Log it.** One redacted line is appended to the activity log, with success, error or blocked
    status and the duration.
@@ -55,6 +58,22 @@ Every tool, in every pack, is wrapped by the same pipeline:
 
 A call that fails step 2 or 3 never reaches the tool. It returns a `Blocked:` message that says
 why. See [Security](./security.md) for the details of each check.
+
+## Tool annotations
+
+Every tool also tells the client how risky it is, using the four MCP annotations: `readOnlyHint`,
+`destructiveHint`, `idempotentHint` and `openWorldHint`. They are worked out in one place
+(`tools/annotations.js`) from the tool's permission level:
+
+- `READ` tools are read-only and never marked destructive.
+- `DESTRUCTIVE` tools, tools with destructive actions (`git_stash` drop, `git_tag` delete) and
+  tools that overwrite existing state are marked destructive.
+- Tools that talk to a service outside your machine (GitHub, Slack, a database, `http_check`,
+  `git_push` and so on) are marked open-world.
+- `use_tool` is never marked read-only, because it can call any tool.
+
+Clients and directories use the hints to decide how to show and approve a tool. They are hints,
+not enforcement: see [Security](./security.md#tool-annotations).
 
 ## Tool packs and lazy loading
 
@@ -67,6 +86,8 @@ integrations cost nothing at startup and add nothing to your agent's context.
 | **Core** | `files`, `directory`, `command`, `project` | Always, at startup |
 | **Startup** | Whatever `CAUSLY_TOOLSETS` lists. `init` sets `research`, `leads`, `seo`, `pipeline`, `reminders`, `meetings` | At startup |
 | **On demand** | Every other pack | When your agent loads them |
+
+What it costs your agent's context: a session with only the core packs lists 25 tools (core packs plus the router tools), about 14 KB of JSON, roughly 3,600 tokens. Loading every pack lists 248 tools, about 145 KB, roughly 36,000 tokens, which is why packs load on demand. Measured with `node scripts/measure-tools-list.mjs` (tokens estimated as bytes / 4).
 
 `CAUSLY_TOOLSETS` accepts pack names separated by commas, or `all` to load everything. Manage it
 with [`causly-server toolsets`](./cli.md#toolsets). An unknown pack name is ignored and reported
@@ -114,6 +135,10 @@ The server exposes read-only project context that a client can attach to a conve
 
 `{path}` is the project folder, URL-encoded as a single segment, for example
 `causly://project/D%3A%5Cmy-app/health`.
+
+A resource read goes through the same [workspace limit](./security.md#workspace-limit) as a tool
+call. With a limit on, a project folder outside it is refused, and the attempt is written to the
+activity log as `BLOCKED`.
 
 ## MCP prompts
 

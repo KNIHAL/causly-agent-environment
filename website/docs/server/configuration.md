@@ -32,7 +32,18 @@ restart.
 
 | Variable | Default | Description |
 |---|---|---|
-| `CAUSLY_WORKSPACE` | Off | Limit file and path arguments to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |
+| `CAUSLY_MAX_READ_BYTES` | `2097152` (2 MB) | Most bytes `read_file` and `read_multiple_files` return per file. A longer file is cut and marked `truncated: true` |
+| `CAUSLY_MAX_BATCH_BYTES` | `8388608` (8 MB) | Most bytes one `read_multiple_files` call returns in total. Files past it are skipped and marked |
+| `CAUSLY_MAX_LIST_ENTRIES` | `2000` | Most entries `list_directory` returns for one folder |
+| `CAUSLY_MAX_TREE_ENTRIES` | `1000` | Most entries `directory_tree` returns in total |
+| `CAUSLY_MAX_SCAN_ENTRIES` | `100000` | Most entries `search_files` looks at before it stops |
+| `CAUSLY_MAX_DB_POOLS` | `8` | Most Postgres and MySQL connection pools kept open. The least recently used is closed first |
+| `CAUSLY_DB_POOL_IDLE_MS` | `300000` (5 min) | A database pool unused this long is closed |
+| `CAUSLY_LOG_MAX_BYTES` | `10485760` (10 MB) | `activity.log` is rotated when the next entry would take it past this size. See [Security](./security.md#activity-log) |
+| `CAUSLY_LOG_KEEP` | `5` | Rotated logs kept (`activity.log.1` to `.N`). The oldest is deleted at the next rotation |
+| `CAUSLY_STRICT_PROJECT_COMMANDS` | Off | Set to `true` to make `run_tests`, `run_lint`, `run_typecheck` and `run_build` `HIGH` risk, so each call needs approval. See [Security](./security.md#project-commands) |
+| `CAUSLY_PASSTHROUGH_ENV` | Empty | Extra variable names passed to commands and other child processes, which otherwise get a minimal environment. Comma-separated; `PREFIX*` matches by prefix; `*` passes everything (the pre-1.6 behavior). Example: `AWS_PROFILE,AWS_REGION,TF_VAR_*`. See [Security](./security.md#child-process-environment) |
+| `CAUSLY_WORKSPACE` | Off | Limit file and path arguments, Docker mounts and project resources to these folders. Separate several with `;` on Windows or `:` on macOS and Linux. Set it with `causly-server init --workspace <folder>`. See [Security](./security.md) |
 | `CAUSLY_TOOLSETS` | Set by `init` | Packs to load at startup, comma-separated, for example `research,pipeline,meetings`. `all` loads every pack. The core packs (`files`, `directory`, `command`, `project`) always load. Manage it with `causly-server toolsets` |
 | `CAUSLY_TIMEZONE` | Your computer's zone | IANA timezone name, for example `Asia/Kolkata`. Used for "today", "tomorrow" and working hours in calendar and reminder tools |
 | `CAUSLY_HOME` | `~/.causly` | Folder for your settings, logs, secrets store and local database |
@@ -41,7 +52,8 @@ restart.
 | `CAUSLY_REMINDER_NOTIFY` | On | Set to `off` to stop due reminders being sent to Telegram. They are still announced in the server log |
 | `CAUSLY_UPDATE_CHECK` | On | Set to `off` to stop `status` and `doctor` from checking the npm registry for a newer version |
 | `CAUSLY_SEARCH_PROVIDER` | Automatic | Force the `web_search` provider: `tavily` or `duckduckgo`. By default Tavily is used when `TAVILY_API_KEY` is set, otherwise DuckDuckGo. `tavily` without a key returns an error |
-| `CAUSLY_ALLOW_PRIVATE_HOSTS` | Off | `web_fetch` refuses private, loopback and link-local addresses. Set to `true` to allow them, for example to read a local dev server |
+| `CAUSLY_APPROVAL_TIMEOUT_MS` | `120000` | How long Causly waits for you to answer an approval prompt (clients with MCP elicitation). With no answer in time, the call is blocked. See [Security](./security.md#the-approval-gate) |
+| `CAUSLY_ALLOW_PRIVATE_HOSTS` | Off | `web_fetch`, `http_check` and the lead and SEO tools refuse private, loopback and link-local addresses. Set to `true` to allow them, for example to read a local dev server |
 
 ### Where data is stored
 
@@ -51,9 +63,14 @@ the package never touches it:
 - `.env`: your keys and settings
 - `causly.db`: SQLite database for the pipeline, meetings and reminders
 - the encrypted secrets store
-- `activity.log`: the structured log of every tool call
+- `activity.log`: the structured log of every tool call. It rotates at 10 MB and keeps five older files (`activity.log.1` to `.5`)
+- `policy.json`: optional. Your allow, ask and deny rules for tools. See [Security](./security.md#policy-file)
 
 Run from a git checkout, logs and the secrets store stay in the repository folder.
+
+On macOS and Linux this folder is `0700` and the files in it are `0600`; on Windows access comes
+from your profile folder. Details and the Windows check are in
+[Security](./security.md#local-file-permissions).
 
 ## Services
 
@@ -68,6 +85,9 @@ the name in the first column.
 | `slack` | `SLACK_BOT_TOKEN` | Yes | Slack app, OAuth & Permissions. Bot scopes: `channels:read`, `channels:history`, `groups:read`, `groups:history`, `chat:write`, `users:read`. Searching messages needs a user token with `search:read` |
 | `notion` | `NOTION_API_KEY` | Yes | [notion.so/my-integrations](https://www.notion.so/my-integrations). Also share each page or database with the integration, or it stays invisible |
 | `linear` | `LINEAR_API_KEY` | Yes | Linear, Settings, Account, Security & access, Personal API keys |
+| `stripe` | `STRIPE_API_KEY` | Yes | [Stripe test API keys](https://dashboard.stripe.com/test/apikeys). Use a test key (`sk_test_...`) first. Live keys are refused unless `STRIPE_ALLOW_LIVE=true` |
+| `stripe` | `STRIPE_ALLOW_LIVE`, `STRIPE_DEFAULT_CURRENCY` | No | `true` allows live keys. The default currency is a 3-letter code such as `usd` (default `usd`) |
+| `discord` | `DISCORD_BOT_TOKEN` | Yes | [Discord Developer Portal](https://discord.com/developers/applications), Bot, Reset Token. Turn on Message Content Intent to read what others wrote |
 | `sentry` | `SENTRY_AUTH_TOKEN` | Yes | [Sentry auth tokens](https://sentry.io/settings/account/api/auth-tokens/) with `project:read` and `event:read`. Add `event:write` to resolve, ignore or comment on issues |
 | `telegram` | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Both | Create a bot with [@BotFather](https://t.me/BotFather), press Start on it, then find your chat id with `telegram_get_updates` |
 | `research` | `TAVILY_API_KEY` | No | [tavily.com](https://tavily.com), free tier. Gives better `web_search` results. Without it, Causly falls back to DuckDuckGo |
@@ -93,8 +113,15 @@ Console. The easiest way to finish setup is the browser sign-in:
 4. Run `causly-server login google` (add `all` to include Search Console). It signs you in and
    saves the refresh tokens for you.
 
-Google expires refresh tokens after 7 days while your app is in Testing status. See
+Google expires refresh tokens after 7 days while your app is in Testing status. To stop that,
+[publish the app](./tools/gmail.md#publish-your-google-app-stop-the-7-day-expiry), sign in again
+and set `CAUSLY_GOOGLE_PUBLISHED=true`. Until then, `status` and `doctor` warn you from day 5. See
 [`login google`](./cli.md#login-google).
+
+| Variable | Default | Notes |
+|---|---|---|
+| `CAUSLY_GOOGLE_PUBLISHED` | Off | Set to `true` once your Google app is published to production. `status` and `doctor` then stop warning about the 7-day expiry. Causly cannot ask Google which status your app has, so this is your word for it |
+| `GMAIL_REFRESH_TOKEN_ISSUED`, `CALENDAR_REFRESH_TOKEN_ISSUED`, `GSC_REFRESH_TOKEN_ISSUED` | Set for you | The date each token was saved. `login google`, `setup` and `keys set` write it, `keys unset` removes it. Do not edit it by hand. A token without this date gets no age warning |
 
 ### Services that need no variable
 

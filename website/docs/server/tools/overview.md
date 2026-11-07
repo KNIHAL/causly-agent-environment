@@ -5,9 +5,9 @@ sidebar_label: Overview
 
 # Tools overview
 
-Causly Server has 231 tools in 26 packs. A pack is a group of tools for one integration or job.
+Causly Server has 245 tools in 28 packs. A pack is a group of tools for one integration or job.
 Packs load lazily, so your agent only carries the tools it needs. See
-[How it works](../architecture.md#tool-packs-and-lazy-loading).
+[How it works](../architecture.md#tool-packs-and-lazy-loading). The default set costs about 3,600 tokens of context; all packs together about 36,000.
 
 Every tool has a [risk level](../security.md#permission-levels). `HIGH` and `DESTRUCTIVE` tools
 need `confirm: true`.
@@ -40,6 +40,12 @@ Three router tools are always available: `search_tools`, `load_toolset` and `use
 | [Supabase](./supabase.md) | 6 | Projects, organizations and SQL | `SUPABASE_ACCESS_TOKEN` |
 | [Database](./database.md) | 8 | Postgres and MySQL queries and schema inspection | A connection string per call |
 
+## Payments
+
+| Pack | Tools | What it does | Needs |
+|---|---|---|---|
+| [Stripe](./stripe.md) | 9 | Customers, draft and sent invoices, payment links, payments, refunds. Test keys first | `STRIPE_API_KEY` |
+
 ## Observability
 
 | Pack | Tools | What it does | Needs |
@@ -70,6 +76,7 @@ Three router tools are always available: `search_tools`, `load_toolset` and `use
 | Pack | Tools | What it does | Needs |
 |---|---|---|---|
 | [Slack](./slack.md) | 8 | Channels, messages and threads | `SLACK_BOT_TOKEN` |
+| [Discord](./discord.md) | 5 | Servers, channels, read and post messages as a bot | `DISCORD_BOT_TOKEN` |
 | [Gmail](./gmail.md) | 8 | Search, read, send, reply and forward | Google sign-in |
 | [Telegram](./telegram.md) | 5 | Alert yourself, read messages sent to your bot | `TELEGRAM_BOT_TOKEN` |
 

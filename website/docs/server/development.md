@@ -48,7 +48,7 @@ causly-server/
 ├── prompts/            MCP prompts
 ├── scripts/            build-manifest.mjs, agent-smoke.mjs
 ├── tests/              One test file per module (vitest)
-└── .github/workflows/  CI
+└── .github/             CI workflows and Dependabot
 ```
 
 ## Tests
@@ -62,9 +62,70 @@ node scripts/agent-smoke.mjs  # connect a plain MCP client and call tools end to
 CI runs on every pull request:
 
 - **cross-os** runs the unit tests and the agent smoke test on Ubuntu, macOS and Windows with
-  Node.js 22, then installs the published package and runs `causly-server doctor`.
-- **ci** checks the syntax of every file, checks that the server boots, and runs the
-  BoundaryAttest tests.
+  Node.js 22 and 24, then installs the published package and runs `causly-server doctor`. The
+  unit tests include the package contents check described below.
+- **ci** checks the syntax of every file and that the server boots (Node.js 22 and 24), runs the
+  BoundaryAttest tests, audits the production dependencies, and runs the docs drift test.
+
+CI installs with `npm ci` everywhere, so it uses exactly the versions in `package-lock.json`.
+
+### Automatic checks
+
+- **Dependency audit.** `npm audit --omit=dev --audit-level=high` fails the build when a
+  production dependency has a high or critical vulnerability. Run the same command yourself.
+- **Dependabot.** `.github/dependabot.yml` opens weekly pull requests for npm packages and for
+  GitHub Actions.
+- **Package contents** (`tests/packageContents.test.js`). Runs `npm pack --dry-run` and fails if
+  the package holds anything outside the `files` list in `package.json`, or any `.env` file (other
+  than `.env.example`), database, log, key or `.enc` file.
+- **Docs drift** (`tests/docsDrift.test.js`). Every tool in `packs/manifest.json` must appear on a
+  tools page, every tool a page lists must exist, and the risk level on a page must match
+  `tools/security.js`. The docs live in the docs repository, so the test needs both repositories
+  side by side. Locally it looks for a folder named `agenv` next to `causly-server`, or you can
+  point it at the docs yourself:
+
+```bash
+CAUSLY_DOCS_DIR=../agenv/website/docs/server npx vitest run tests/docsDrift.test.js
+```
+
+  CI checks out the docs repository and sets `CAUSLY_REQUIRE_DOCS=1`, so the test fails instead of
+  being skipped when the docs are missing. When you change a tool or its risk level, change its
+  docs page in the same piece of work, and merge the docs change first or together with the code.
+- **Annotations and stdout** (`tests/annotations.e2e.test.js`, `tests/stdout.e2e.test.js`). Start the
+  server over stdio with every pack loaded and check that all tools have the four annotations, a
+  description and an object schema, that `READ` tools are never destructive, and that stdout holds
+  only JSON-RPC lines (a stray `console.log` would corrupt the protocol; log to stderr).
+- **Upgrade test** (`tests/upgrade.migration.test.js`). Opens a database written by the real 1.5.0
+  (`tests/fixtures/db-1.5.0/`) and checks that pipeline, meetings, action items and reminders are
+  intact and that old migrations are not run again. It also covers a corrupt database, `.env`,
+  secrets file and editor config. Never edit the fixture: when the schema changes in a release, add
+  a new fixture for that release.
+- **Release metadata** (`tests/releaseMetadata.test.js`). `package.json`, `server.json` and the
+  changelog must agree on the version, and the publish workflow must use provenance.
+- **Docs site links.** The docs site build fails on a broken page link or a broken anchor
+  (`onBrokenLinks` and `onBrokenAnchors` are `throw`). Run `npm run build` in `website/` before you
+  push docs.
+
+### Fuzz tests for paths and shell arguments
+
+Any tool argument that reaches a path or a shell must survive hostile values. The helper in
+`tests/helpers/fuzz.js` gives you the values and the checks:
+
+```js
+import { FUZZ_VALUES, injectionPayloads, asFileName, makeSandbox, attempt, expectNoEvaluation } from "./helpers/fuzz.js";
+
+const box = await makeSandbox();                       // box.ws is the workspace, box.sentinel must never appear
+const values = [...FUZZ_VALUES, ...injectionPayloads(box.sentinel)];
+for (const { value } of values) await attempt(() => yourTool({ name: value }));
+await expectNoEvaluation(box);                          // nothing evaluated, nothing outside the workspace changed
+```
+
+`FUZZ_VALUES` holds quotes, `;`, `&`, `|`, `$(x)`, a backtick, `%PATH%`, a newline, a very long name, an
+empty string, Hindi and emoji names, a trailing space or dot, `..\..`, and a UNC path.
+`injectionPayloads` builds strings that would create the sentinel file if a shell ran them.
+`attempt` accepts success or an `Error` and fails the test on anything else. See
+`tests/fuzz.boundaries.test.js` for the files, directory, git, command, project, Terraform and
+Docker tools. Add your tool there when it takes a path or a name.
 
 Please also test by hand before you merge a new or changed tool:
 
@@ -115,9 +176,14 @@ written by other people, say so in the description so the agent treats it as dat
 **3. Add the pack to `packs/registry.js`** with a one-line `description` and `core: false`.
 
 **4. Set permission levels in `tools/security.js`.** Give every tool a level (`READ`, `LOW`,
-`MEDIUM`, `HIGH` or `DESTRUCTIVE`). A tool without one defaults to `MEDIUM`. Anything that sends
+`MEDIUM`, `HIGH` or `DESTRUCTIVE`). A tool without one defaults to `MEDIUM`, and a test fails if a shipped tool has no
+level. Anything that sends
 something to other people or cannot be undone should be `HIGH` or `DESTRUCTIVE`, and accept a
 `confirm` argument.
+
+The MCP annotations (`readOnlyHint` and the rest) come from the level automatically. If your pack
+calls a service outside the machine, also add the pack's name to `OPEN_WORLD_PACKS` in
+`tools/annotations.js`, so its tools are marked open-world.
 
 **5. Add setup support if it needs a key.** Describe the service in `tools/services.js` so
 `causly-server setup yourservice` and `doctor --test` work, and add the variable to
@@ -134,7 +200,7 @@ npm test
 
 Also write a test in `tests/`, and a docs page under `website/docs/server/tools/` with the tools
 table, setup, behavior and limits. Look at an existing page such as [Linear](./tools/linear.md)
-for the format.
+for the format. The docs drift test fails until the tools on the page match the manifest and their risk levels match `tools/security.js`.
 
 ## Pull requests
 
@@ -142,6 +208,16 @@ for the format.
 - Describe what you changed, why, and how you tested it.
 - Update the docs page for any tool you add or change.
 - Open an issue first for anything large, so the approach can be agreed before you build it.
+
+## Releasing
+
+1. Set the new version in `package.json` and `server.json` (both places) and add a section for it to
+   `CHANGELOG.md`. The release metadata test fails if they disagree.
+2. Merge to `master`, then publish a GitHub release whose tag is `v<version>`, for example `v1.5.4`.
+3. The **Publish to npm** workflow checks the tag against `package.json`, audits the production
+   dependencies, runs the tests and publishes with `npm publish --provenance`. npm then shows a
+   verified link from the package to this repository and commit. It needs the repository secret
+   `NPM_TOKEN`.
 
 ## Reporting a security issue
 

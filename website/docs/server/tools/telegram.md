@@ -70,6 +70,10 @@ and then call it with `confirm: true`. `chat_id` is a number (groups are negativ
 `@channelname`. `reply_to_message_id`, `silent` and `parse_mode` are optional. For messages to
 yourself, use `telegram_notify`.
 
+## Rate limits and errors
+
+Telegram limits how fast one bot can send. Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services). When Telegram says how long to wait, the message uses its number.
+
 ## Examples
 
 ```text

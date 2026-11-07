@@ -28,12 +28,33 @@ master key, the stored secrets cannot be recovered.
 Secrets are stored AES-256-GCM encrypted in `~/.causly/.causly-secrets.enc`. Never commit or share
 this file.
 
+The key must be exactly 64 hexadecimal characters (32 bytes). A key that is shorter, longer, not
+hex, or has extra characters after the 64 is rejected with a clear message, and nothing is written.
+The same rule applies to `SECRETS_MASTER_KEY_NEW`.
+
+Every tool also accepts an optional `store_path` to use a different store file. Three rules apply:
+
+- **Allowed folders only.** The path must be inside Causly's data folder (`~/.causly`, or the
+  repository folder in a git checkout) or inside a `CAUSLY_WORKSPACE` folder. Anything else is
+  refused, including `../` tricks and symlinks that lead out. Leave `store_path` out to use the
+  default store.
+- **Only real stores.** If the file already exists, every entry in it must look like a Causly secret.
+  A `package.json`, an `.env` or any other file is refused and left untouched, so `secrets_set`
+  cannot be used to overwrite it.
+- **Protected paths.** System folders and credential folders (such as `~/.ssh` or `~/.aws`) are
+  refused, and the check follows symlinks to the real location. See
+  [Protected paths](../security.md#protected-paths).
+
+Every write goes to a temporary file in the same folder and is renamed over the store. If a write or
+a key rotation fails part-way, for example because one entry cannot be decrypted, the old store stays
+exactly as it was.
+
 ## Tools
 
 | Tool | Risk | What it does |
 |---|---|---|
 | `secrets_set` | HIGH | Store an encrypted secret by name |
-| `secrets_get` | MEDIUM | Retrieve and decrypt a secret by name |
+| `secrets_get` | HIGH | Retrieve and decrypt a secret by name. The value is returned to the agent, so it needs `confirm: true` |
 | `secrets_list` | READ | List secret names (never values) |
 | `secrets_delete` | DESTRUCTIVE | Delete a secret |
 | `secrets_rotate_key` | HIGH | Re-encrypt every secret under a new master key |

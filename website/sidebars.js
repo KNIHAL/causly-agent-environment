@@ -45,6 +45,12 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'Payments',
+          collapsed: true,
+          items: ['server/tools/stripe'],
+        },
+        {
+          type: 'category',
           label: 'Observability',
           collapsed: true,
           items: ['server/tools/sentry'],
@@ -76,7 +82,7 @@ const sidebars = {
           type: 'category',
           label: 'Communication',
           collapsed: true,
-          items: ['server/tools/slack', 'server/tools/gmail', 'server/tools/telegram'],
+          items: ['server/tools/slack', 'server/tools/discord', 'server/tools/gmail', 'server/tools/telegram'],
         },
         {
           type: 'category',

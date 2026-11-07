@@ -58,8 +58,9 @@ causly-server init [--client <list>] [--workspace <folder>] [--toolsets <list>] 
 What it does:
 
 - Writes the server entry into each editor's config file and keeps all other servers. An existing
-  file is first copied to `<file>.backup-<timestamp>`.
-- Creates `~/.causly/.env` if it does not exist.
+  file is first copied to `<file>.backup-<timestamp>`. The copy is owner-only, and the config
+  file is replaced safely (it keeps its permissions and is never left half written).
+- Creates `~/.causly/.env` if it does not exist, readable only by you on macOS and Linux.
 - Prints the `claude mcp add ...` command for Claude Code.
 - In an interactive terminal, asks whether to add API keys now.
 
@@ -76,6 +77,9 @@ Shows, on one screen:
 - **Editors** that have Causly Server, how many packs load at startup, and whether file access is
   limited to a folder.
 - **Keys** that are ready, and any that are incomplete.
+- **Google**: a line only when your Google sign-in is 5 days old or more, because a Testing-status
+  app's sign-in expires after 7 days. It says how many days are left, or that it has expired. Not
+  shown once `CAUSLY_GOOGLE_PUBLISHED` is `true`.
 - **Your data**: companies and open deals in the pipeline, meetings, open and overdue action
   items, pending and overdue reminders, and the next reminder.
 - **Backup**: when you last saved one.
@@ -94,7 +98,10 @@ Checks:
 | Node.js | Version is older than 20. Below 22.13 it warns that pipeline, meetings and reminders need 22.13+ |
 | Settings file | No `.env` was found |
 | Integrations configured | Informational: lists services that have all their keys set |
+| Google sign-in | Warns when the sign-in is 5 days old or more (it expires after 7 days in Testing status), and says when it has expired. Shown only when Causly knows the date it was saved. With `CAUSLY_GOOGLE_PUBLISHED=true` it just says the app is marked published |
 | ffmpeg | Informational: only needed for recordings over 25 MB |
+| Private data folder | Informational: warns when other users could open Causly's data folder (a folder that is not `0700` on macOS and Linux, or outside your profile on Windows) |
+| Child process env | Informational: shows whether commands get a minimal environment, extra passthrough names, or the full environment (`*`) |
 | Workspace limit | Informational: shows whether file tools are limited to a folder |
 | Set up in | Informational: shows which editors have Causly Server |
 
@@ -150,9 +157,11 @@ Before the first login, save your Google OAuth client with `causly-server setup`
 `causly-server keys set GMAIL_CLIENT_ID` and `GMAIL_CLIENT_SECRET`. The client must be a
 **Desktop app** client. A "Web application" client fails with `redirect_uri_mismatch`.
 
-While your Google app is in Testing mode, Google expires the token after 7 days. Run
-`causly-server login google` again to renew it. Publishing the app to production removes the
-expiry.
+While your Google app is in Testing mode, Google expires the token after 7 days. The command saves
+the date next to each token and prints the day it would stop working, and `status` and `doctor`
+warn from day 5. Run `causly-server login google` again to renew it. Publishing the app to
+production removes the expiry: see
+[Publish your Google app](./tools/gmail.md#publish-your-google-app-stop-the-7-day-expiry).
 
 The command exits with an error if nothing was saved or any check failed. Only `login google`
 exists. Other services use `causly-server setup <service>`.
@@ -183,7 +192,9 @@ causly-server restore <file> [--yes]
 ```
 
 `backup` saves your pipeline, meetings and reminders to a file. API keys are **not** included,
-they stay in the settings file.
+they stay in the settings file. The backup is readable only by you on macOS and Linux. It appears
+under its final name only when it is complete, so a crash never leaves a half-written backup. A
+restored data file is owner-only too.
 
 `restore` replaces your current data with the backup. A copy of the current data is kept and its
 path is printed. It asks for confirmation unless you pass `--yes`. Restart your editor afterwards

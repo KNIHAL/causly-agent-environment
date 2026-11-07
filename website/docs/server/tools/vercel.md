@@ -26,12 +26,16 @@ sidebar_position: 9
 | `vercel_create_deployment` | HIGH | Trigger a new deployment from a git-connected project |
 | `vercel_get_deployment_logs` | READ | Get build/runtime logs for a deployment |
 | `vercel_get_deployment_events` | READ | Get a deployment's build/progress state |
-| `vercel_cancel_deployment` | MEDIUM | Cancel a currently building or queued deployment |
-| `http_check` | READ | Hit a URL and report status code, health, and response time |
+| `vercel_cancel_deployment` | HIGH | Cancel a currently building or queued deployment. Can affect production, so it needs `confirm: true` |
+| `http_check` | READ | Hit a URL and report status code, health, and response time. Refuses private, loopback and link-local addresses (see [Network guard](../security.md#network-guard)) |
 
 `vercel_create_deployment` resolves the numeric GitHub repository ID automatically from an
 `owner/repo` string before calling Vercel's API, since Vercel's deployment API requires the
 numeric ID directly rather than accepting the string form.
+
+## Rate limits and errors
+
+A 403 means the token cannot reach that team or project, or lacks the permission for the action. Causly does not retry failed calls on its own: a rate-limit error says how long to wait (`Try again in 12s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services).
 
 ## Example
 

@@ -22,8 +22,8 @@ approval gate for `HIGH` and `DESTRUCTIVE` tools, and the activity log.
 
 | Tool | Level | What it does |
 |---|---|---|
-| `read_file` | `READ` | Read the full text of one file |
-| `read_multiple_files` | `READ` | Read several files in one call. A failure on one file does not stop the others |
+| `read_file` | `READ` | Read the text of one file, up to 2 MB. A longer file is cut and marked `truncated` |
+| `read_multiple_files` | `READ` | Read several files in one call, up to 2 MB each and 8 MB in total. A failure on one file does not stop the others. Files past the budget are skipped and marked |
 | `create_file` | `MEDIUM` | Create a new file |
 | `write_file` | `MEDIUM` | Create a file or completely overwrite it, creating parent folders as needed |
 | `edit_file` | `MEDIUM` | Replace an exact piece of text without rewriting the whole file |
@@ -33,19 +33,21 @@ approval gate for `HIGH` and `DESTRUCTIVE` tools, and the activity log.
 | `get_file_info` | `READ` | Size, type, and created and modified times |
 
 `edit_file` needs the old text to match exactly, and to be unique unless `replace_all` is set. It
-is the cheapest way to change a large file.
+is the cheapest way to change a large file. In a file with Windows (CRLF) line endings, text that
+spans several lines matches whichever line ending you type, and the file keeps its own line
+endings after the edit.
 
 ## Directories
 
 | Tool | Level | What it does |
 |---|---|---|
-| `list_directory` | `READ` | List the files and folders directly inside a folder |
-| `directory_tree` | `READ` | A recursive tree view. Skips `node_modules` and `.git`. `max_depth` defaults to 5 |
+| `list_directory` | `READ` | List the files and folders directly inside a folder. Shows the first 2000 entries and marks a larger folder `truncated` |
+| `directory_tree` | `READ` | A recursive tree view. Does not walk dependency and build folders (`node_modules`, `.git`, `build`, `dist`, `.next`, `.docusaurus`, `.venv`, `venv`, `__pycache__`, `.turbo`, `coverage`); their names appear under `skipped`, and `include_ignored: true` walks them. `max_depth` defaults to 3 and is capped at 20. Stops after 1000 entries |
 | `create_directory` | `LOW` | Create a folder, including missing parents |
 | `delete_directory` | `DESTRUCTIVE` | Delete a folder, recursively by default. Needs `confirm: true` |
-| `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive |
+| `search_files` | `READ` | Find files and folders whose name contains a pattern, case-insensitive. Stops at `max_results` (up to 1000) or after 100,000 entries looked at |
 
-File and folder tools refuse to write or delete inside protected Windows system folders. See
+File and folder tools check every path, including both ends of `copy_file` and `move_file`: they refuse to change system folders on Windows, macOS and Linux, and refuse to read or write credential folders such as `~/.ssh`. See
 [Protected paths](../security.md#protected-paths).
 
 ## Git
@@ -58,7 +60,7 @@ File and folder tools refuse to write or delete inside protected Windows system 
 | `git_status` | `READ` | Working tree status |
 | `git_add` | `LOW` | Stage files |
 | `git_commit` | `MEDIUM` | Commit staged changes |
-| `git_push` | `MEDIUM` | Push commits to a remote |
+| `git_push` | `HIGH` | Push commits to a remote. Visible to others and hard to undo, so it needs `confirm: true` |
 | `git_pull` | `MEDIUM` | Pull from a remote |
 | `git_log` | `READ` | Recent commit history |
 | `git_diff` | `READ` | Uncommitted changes, optionally for one file |
@@ -66,12 +68,12 @@ File and folder tools refuse to write or delete inside protected Windows system 
 | `git_branch` | `READ` | List local branches and show the current one |
 | `git_create_branch` | `LOW` | Create a branch, optionally checking it out |
 | `git_checkout` | `MEDIUM` | Check out an existing branch |
-| `git_merge` | `MEDIUM` | Merge a branch into the current one |
+| `git_merge` | `HIGH` | Merge a branch into the current one. Changes the working branch, so it needs `confirm: true` |
 | `git_reset` | `HIGH` | Reset the current branch to a ref. Needs `confirm: true` |
-| `git_stash` | `LOW` | Stash working changes |
+| `git_stash` | `MEDIUM` | Stash working changes. Only `action: "drop"` needs `confirm: true` |
 | `git_show` | `READ` | Details of a commit or object |
 | `git_remote` | `MEDIUM` | Manage and inspect remotes |
-| `git_tag` | `LOW` | Manage tags |
+| `git_tag` | `MEDIUM` | Manage tags. Only `action: "delete"` needs `confirm: true` |
 | `git_changed_files` | `READ` | Changed files with their change type |
 | `git_check_clean` | `READ` | Whether the working tree is clean |
 
@@ -93,6 +95,12 @@ does not have to guess whether to run `npm test`, `pytest` or `cargo test`.
 | `run_typecheck` | `LOW` | Detect and run the typecheck command |
 | `run_build` | `LOW` | Detect and run the build command |
 
+`run_tests`, `run_lint`, `run_typecheck` and `run_build` run the project's own scripts (for example
+`npm test` from `package.json`). A project you did not write can run anything in those scripts, so
+treat an unfamiliar repository like untrusted code. They are `LOW` by default. Set
+`CAUSLY_STRICT_PROJECT_COMMANDS=true` to make them `HIGH`: each call then needs your approval, or
+`confirm: true` on clients without prompts. See [Security](../security.md#project-commands).
+
 The same information is available as [MCP resources](../architecture.md#mcp-resources), which a
 client can attach to a conversation.
 
@@ -108,7 +116,7 @@ client can attach to a conversation.
 | `timeout_ms` | Default 60,000 (one minute) |
 | `confirm` | Must be `true` |
 
-Output is capped at 20,000 characters. On Windows, commands run through PowerShell, not
+The result holds only `stdout`, `stderr` and `exit_code` (plus `timed_out` after a timeout, and a `risk` note when the command was flagged). It does not repeat the command or folder you sent. Output is capped at 20,000 characters. On Windows, commands run through PowerShell, not
 `cmd.exe`, so PowerShell syntax works. Catastrophic commands are blocked and risky ones are
 flagged. See [Command safety](../security.md#command-safety).
 
