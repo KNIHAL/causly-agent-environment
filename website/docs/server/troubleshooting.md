@@ -36,7 +36,10 @@ causly-server doctor --test   # also tests every configured key live
 
 | Problem | Fix |
 |---|---|
-| Gmail or Calendar suddenly stopped working | While your Google app is in Testing status, the token expires after 7 days. Run `causly-server login google` |
+| Gmail or Calendar suddenly stopped working | While your Google app is in Testing status, the token expires after 7 days. Run `causly-server login google`. To stop it for good, [publish the app](./tools/gmail.md#publish-your-google-app-stop-the-7-day-expiry) |
+| `status` or `doctor` says the Google sign-in is 5 or more days old | The sign-in expires on day 7 in Testing status. Renew it with `causly-server login google`, or publish the app |
+| I published the app but the warning stays | Sign in again with `causly-server login google` (a token saved in Testing can still expire), then run `causly-server keys set CAUSLY_GOOGLE_PUBLISHED` and enter `true` |
+| Google says the app is not verified | It is your own app: choose **Advanced**, then **Go to the app (unsafe)**. Verification is not needed for personal use |
 | `redirect_uri_mismatch` during sign-in | Your OAuth client is a "Web application". Create a **Desktop app** client instead and save it with `causly-server setup gmail` |
 | `403` from Google | The token is missing a scope, or the API is not enabled in your Google Cloud project. Enable the Gmail, Calendar or Search Console API, then run `causly-server login google` again |
 | `401` from Google | The refresh token is wrong or expired. Run `causly-server login google` |

@@ -113,8 +113,15 @@ Console. The easiest way to finish setup is the browser sign-in:
 4. Run `causly-server login google` (add `all` to include Search Console). It signs you in and
    saves the refresh tokens for you.
 
-Google expires refresh tokens after 7 days while your app is in Testing status. See
+Google expires refresh tokens after 7 days while your app is in Testing status. To stop that,
+[publish the app](./tools/gmail.md#publish-your-google-app-stop-the-7-day-expiry), sign in again
+and set `CAUSLY_GOOGLE_PUBLISHED=true`. Until then, `status` and `doctor` warn you from day 5. See
 [`login google`](./cli.md#login-google).
+
+| Variable | Default | Notes |
+|---|---|---|
+| `CAUSLY_GOOGLE_PUBLISHED` | Off | Set to `true` once your Google app is published to production. `status` and `doctor` then stop warning about the 7-day expiry. Causly cannot ask Google which status your app has, so this is your word for it |
+| `GMAIL_REFRESH_TOKEN_ISSUED`, `CALENDAR_REFRESH_TOKEN_ISSUED`, `GSC_REFRESH_TOKEN_ISSUED` | Set for you | The date each token was saved. `login google`, `setup` and `keys set` write it, `keys unset` removes it. Do not edit it by hand. A token without this date gets no age warning |
 
 ### Services that need no variable
 

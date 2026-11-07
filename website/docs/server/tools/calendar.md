@@ -33,8 +33,11 @@ This saves `CALENDAR_REFRESH_TOKEN` with the scopes Calendar needs (`calendar.ev
 | `CALENDAR_CLIENT_ID`, `CALENDAR_CLIENT_SECRET` | No | Only if you want a different OAuth client from Gmail. Otherwise `GMAIL_CLIENT_ID` and `GMAIL_CLIENT_SECRET` are reused |
 | `CAUSLY_TIMEZONE` | No | IANA timezone, for example `Asia/Kolkata`. Defaults to your computer's timezone |
 
-Google expires the token after 7 days while your app is in Testing status. Run
-`causly-server login google` again to renew it.
+Google expires the token after 7 days while your app is in Testing status.
+`causly-server status` and `causly-server doctor` warn you from day 5. Run
+`causly-server login google` again to renew it, or
+[publish the app](./gmail.md#publish-your-google-app-stop-the-7-day-expiry) so it stops
+expiring. Calendar and Gmail use the same Google app, so one publish covers both.
 
 ## Tools
 

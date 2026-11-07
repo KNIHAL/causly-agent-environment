@@ -27,9 +27,50 @@ create once:
 causly-server login google
 ```
 
-This saves `GMAIL_REFRESH_TOKEN` for you. While your Google app is in Testing status, Google
-expires the token every 7 days. Run `causly-server login google` again to renew it, or publish
-the app in **Audience** to stop the expiry. See [Environment variables](../configuration.md#google).
+This saves `GMAIL_REFRESH_TOKEN` for you, and the day it was saved. While your Google app is in
+Testing status, Google expires the token every 7 days. `causly-server status` and
+`causly-server doctor` warn you from day 5. Run `causly-server login google` again to renew it, or
+publish the app as described below to stop the expiry. See
+[Environment variables](../configuration.md#google).
+
+## Publish your Google app (stop the 7-day expiry)
+
+A new Google OAuth app starts in **Testing** status, and Google expires its sign-ins after 7 days.
+Publishing the app to production removes that expiry. This is a step in your own Google Cloud
+project, and Causly cannot do it for you. Google changes the console from time to time, so a menu
+may be named slightly differently.
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/) and select the project you made
+   the OAuth client in.
+2. Open **Google Auth Platform**, then **Branding**. Fill in the **App name**, **User support
+   email** and **Developer contact information**. Google asks for these before it lets you publish.
+   Save.
+3. Open **Audience**. Under **Publishing status**, press **Publish app** and confirm. The status
+   changes from **Testing** to **In production**.
+4. Check **Data access**: the scopes `causly-server login google` asks for (Gmail, Calendar,
+   and Search Console if you use it) should be listed. If one is missing, add it.
+5. Sign in again, because a token saved while the app was in Testing can still expire:
+
+   ```bash
+   causly-server login google
+   ```
+
+   Google may say the app is not verified. This is your own app: choose **Advanced**, then
+   **Go to the app (unsafe)**, tick every permission box and press **Allow**. For personal use you
+   do not need to submit it for verification. Until it is verified Google limits an app to 100
+   users, which does not matter for your own account.
+6. Tell Causly the expiry is gone, so it stops warning you:
+
+   ```bash
+   causly-server keys set CAUSLY_GOOGLE_PUBLISHED
+   ```
+
+   Enter `true` at the prompt.
+
+A published app's sign-in still stops working if you remove the app's access at
+[myaccount.google.com/permissions](https://myaccount.google.com/permissions), change your Google
+password in some setups, or leave it unused for six months. Then run `causly-server login google`
+again.
 
 ## Tools
 

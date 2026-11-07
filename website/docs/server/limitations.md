@@ -32,7 +32,13 @@ fix, see [Troubleshooting](./troubleshooting.md).
 ## Google
 
 - While your Google app is in **Testing** status, Google expires the refresh token after 7 days.
-  Run `causly-server login google` to renew it, or publish the app to production.
+  `status` and `doctor` warn from day 5. Run `causly-server login google` to renew it, or
+  [publish the app to production](./tools/gmail.md#publish-your-google-app-stop-the-7-day-expiry).
+  That is a step in your own Google Cloud project that Causly cannot do for you, and Causly cannot
+  ask Google which status your app has: after publishing, set `CAUSLY_GOOGLE_PUBLISHED=true` to
+  stop the warnings.
+- The age warning only works for sign-ins saved by `login google`, `setup` or `keys set`. A token
+  you wrote into the settings file by hand has no saved date, so it gets no warning.
 - Gmail, Calendar and Search Console need a Google OAuth client that you create yourself.
 
 ## Safety
