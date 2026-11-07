@@ -213,11 +213,43 @@ for the format. The docs drift test fails until the tools on the page match the 
 
 1. Set the new version in `package.json` and `server.json` (both places) and add a section for it to
    `CHANGELOG.md`. The release metadata test fails if they disagree.
-2. Merge to `master`, then publish a GitHub release whose tag is `v<version>`, for example `v1.5.4`.
+2. Merge to `master`, then create a **signed** tag and publish a GitHub release for it. The tag is
+   `v<version>`, for example `v1.5.4`:
+   ```
+   git tag -s v1.5.4 -m "v1.5.4"
+   git tag -v v1.5.4
+   git push origin v1.5.4
+   ```
+   `git tag -v` must print a good signature before you push. GitHub shows a **Verified** badge on
+   the tag when your signing key is added to your account.
 3. The **Publish to npm** workflow checks the tag against `package.json`, audits the production
-   dependencies, runs the tests and publishes with `npm publish --provenance`. npm then shows a
-   verified link from the package to this repository and commit. It needs the repository secret
-   `NPM_TOKEN`.
+   dependencies, checks their licenses, generates the SBOM, runs the tests and publishes with
+   `npm publish --provenance`. npm then shows a verified link from the package to this repository
+   and commit. It needs the repository secret `NPM_TOKEN`.
+4. The workflow attaches `causly-server-v<version>.cdx.json` to the GitHub release. It is a
+   CycloneDX software bill of materials for the production dependencies. To make one by hand, run
+   `npm run -s sbom > sbom.cdx.json`.
+
+### License check
+
+`npm run check:licenses` reads `package-lock.json` and fails when a production dependency has no
+license or one outside the allowlist: MIT, ISC, BSD-2-Clause, BSD-3-Clause, Apache-2.0, 0BSD,
+BlueOak-1.0.0, CC0-1.0, Python-2.0 and Unlicense. An `OR` expression passes if one choice is
+allowed. CI and the publish workflow both run it. To add a license to the allowlist, edit
+`scripts/check-licenses.mjs` in a pull request that explains why.
+
+### Revoking a bad release
+
+If a published version is broken or unsafe:
+
+1. Run `npm deprecate causly-server@<version> "<one line: what is wrong and which version to use>"`.
+   Do not use `npm unpublish`: it breaks people who already depend on that version.
+2. Publish a fixed patch release the normal way.
+3. For a security problem, publish a GitHub security advisory (repository **Security** tab) so
+   `npm audit` warns users, and follow [SECURITY.md](https://github.com/KNIHAL/causly-server/blob/master/SECURITY.md).
+4. Add a note to the `CHANGELOG.md` section of the fixed version that names the bad version and
+   the reason.
+5. If the MCP Registry entry points at the bad version, update it to the fixed one.
 
 ## Reporting a security issue
 
