@@ -59,8 +59,6 @@ See [Security](./security.md#what-is-not-protected) for the full list.
   for your own site's real numbers.
 - **No outreach tools for LinkedIn, X or WhatsApp.** Email goes through [Gmail](./tools/gmail.md).
 - **Pipeline does not send messages.** It records what happened. Sending is a separate step.
-- **Recurring calendar events.** Updating one only changes the event id you pass, not the whole
-  series.
 - **No sync between machines.** Your pipeline, meetings and reminders are in one local database.
   Use [`backup`](./cli.md#backup-and-restore) to move or keep a copy.
 

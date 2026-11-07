@@ -109,14 +109,49 @@ Claude calls `calendar_find_slots` with `attendees`, proposes a window, and afte
 Claude calls `calendar_update_event` with the new `start`. Moving only the start keeps the
 event's original length.
 
+## Recurring events
+
+A recurring event is a series plus its occurrences. `calendar_list_events` returns each occurrence
+with its own id. `calendar_update_event` and `calendar_delete_event` take an optional `scope`:
+
+| `scope` | What changes | Default for |
+| --- | --- | --- |
+| `this` | Only the occurrence whose id you pass | An occurrence id |
+| `following` | That occurrence and every later one | |
+| `all` | The whole series | A series id |
+
+- **`all` from an occurrence** finds the series and changes it. A new time moves the whole series by
+  the same amount (an occurrence moved from 10:00 to 11:00 means every occurrence is at 11:00); the
+  series keeps its own first date. An all-day series moves by whole days.
+- **`following`** ends the old series one second before this occurrence (an all-day series ends the
+  day before) and, for an update, starts a new series here with your changes. The new series is
+  created first, and removed again if the old one cannot be ended, so you never end up with missing
+  or doubled occurrences. A series limited by `COUNT` keeps the right number of remaining
+  occurrences. From the first occurrence it is the same as `all`. For a delete there is no new
+  series: the later occurrences are simply gone.
+- **A series id** cannot be used with `this` or `following`: there is no single occurrence to pick.
+  You get a clear error and nothing is sent.
+- **Guests.** Changing or deleting a series with guests still needs `confirm: true`, as for any
+  event, and guests of the series are the ones notified.
+- An occurrence id without `scope` behaves as before (only that occurrence), and the result reminds
+  Claude that `following` and `all` exist.
+
+```
+"Move my Monday standup to 11:00 from next week on."
+```
+Claude calls `calendar_update_event` with the occurrence id, the new `start` and `scope: "following"`.
+
 ## Rate limits and errors
 
 Causly does not retry failed calls on its own. A rate-limit error says how long to wait (`Try again in 42s`), a timeout is 20 seconds, and every error message includes the fix. See [Errors from services](../troubleshooting.md#errors-from-services). A deleted event gives `That event was already deleted.`
 
 ## Known limitations
 
-- Updating an event that belongs to a recurring series changes only the event id you pass. It does
-  not rewrite the whole series.
+- Splitting a series with `scope: "following"` creates a new series for the later occurrences. Its
+  guests are invited again, so their earlier replies do not carry over, and a Meet link is not
+  copied (ask for a new one with `add_meet_link`). Exceptions you made to single later occurrences
+  (a renamed or moved one) are not carried into the new series.
+- A series cannot be switched between all-day and timed with `scope: "all"`. Use `scope: "this"`.
 - Attendee limits: at most 50 guests per call, and each must be a valid email address.
 - `calendar_find_slots` and `calendar_free_busy` can only see calendars that are shared with the
   authenticated account.
