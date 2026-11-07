@@ -18,6 +18,7 @@ are not a sandbox.
 | [Permission levels](#permission-levels) | Every tool has a risk level. High-risk and destructive tools need your approval: a prompt in your client, or `confirm: true` where the client has no prompts |
 | [Workspace limit](#workspace-limit) | Restrict file tools, Docker mounts and project resources to the folders you choose |
 | [Project commands](#project-commands) | `run_tests`, `run_build` and friends run the project's scripts; turn on strict mode to approve each call |
+| [Read-only mode](#read-only-mode) | One switch removes every tool that is not `READ`, for agents that should only look |
 | [Child process environment](#child-process-environment) | Commands get a minimal environment, so your keys stay out unless you allow them |
 | [Command safety](#command-safety) | Catastrophic shell commands are blocked. Risky ones are flagged |
 | [Protected paths](#protected-paths) | System folders cannot be changed, credential folders cannot be read or written |
@@ -332,6 +333,24 @@ config `env` block. The four tools then count as `HIGH`, so every call needs you
 `confirm: true` on clients without prompts). You can still allow them per tool in
 [`policy.json`](#the-approval-gate). The [workspace limit](#workspace-limit) applies as before, and
 [commands get a minimal environment](#child-process-environment) either way.
+
+## Read-only mode
+
+Set `CAUSLY_READ_ONLY=true` in your editor's MCP config `env` block (or in `~/.causly/.env`) to let
+an agent look but not touch. Only tools with the `READ` permission level stay available, plus
+`load_toolset` so read tools can still be loaded.
+
+- Every other tool is not registered, so it does not appear in the tool list or in `search_tools`.
+- `use_tool` refuses them with a message that names the setting.
+- The approval gate refuses them too, whatever `confirm` says and whatever `~/.causly/policy.json`
+  allows. Read-only mode cannot be loosened by the agent or by the policy file.
+- A new tool without a permission level counts as not `READ`, so it is off in this mode.
+
+Restart the server after changing it: tools are hidden when their pack loads. The gate itself
+reads the setting on every call, so turning it on takes effect for calls immediately.
+
+Read-only is a limit on what Causly's tools can do. It does not stop the agent from using other
+tools your editor has.
 
 ## Child process environment
 
